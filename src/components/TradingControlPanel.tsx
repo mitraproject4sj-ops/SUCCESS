@@ -181,32 +181,94 @@ export default function TradingControlPanel() {
           </div>
         </div>
 
-        {/* Time Controls */}
+        {/* Trade Duration and Exit Controls */}
         <div className="border-t border-slate-700/50 pt-4">
           <h3 className="flex items-center space-x-2 mb-3 text-white">
             <Clock className="h-4 w-4 text-purple-400" />
-            <span>Trading Hours</span>
+            <span>Trade Duration & Exit Controls</span>
           </h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-slate-400">Start Time</label>
+              <label className="block text-sm text-slate-400">Max Trade Duration (minutes)</label>
               <input
-                type="time"
-                value={settings.tradingHoursStart}
-                onChange={(e) => handleSettingChange('tradingHoursStart', e.target.value)}
+                type="number"
+                value={settings.maxTradeDuration}
+                onChange={(e) => handleSettingChange('maxTradeDuration', parseInt(e.target.value))}
                 disabled={isLocked}
-                className="bg-slate-700 text-white rounded p-1"
+                className="bg-slate-700 text-white rounded p-1 w-24"
               />
             </div>
             <div>
-              <label className="block text-sm text-slate-400">End Time</label>
+              <label className="block text-sm text-slate-400">Max Daily Trades</label>
               <input
-                type="time"
-                value={settings.tradingHoursEnd}
-                onChange={(e) => handleSettingChange('tradingHoursEnd', e.target.value)}
+                type="number"
+                value={settings.maxDailyTrades}
+                onChange={(e) => handleSettingChange('maxDailyTrades', parseInt(e.target.value))}
                 disabled={isLocked}
-                className="bg-slate-700 text-white rounded p-1"
+                className="bg-slate-700 text-white rounded p-1 w-24"
               />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-400">Take Profit %</label>
+              <input
+                type="number"
+                step="0.1"
+                value={settings.takeProfitPercentage}
+                onChange={(e) => handleSettingChange('takeProfitPercentage', parseFloat(e.target.value))}
+                disabled={isLocked}
+                className="bg-slate-700 text-white rounded p-1 w-24"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-400">Stop Loss %</label>
+              <input
+                type="number"
+                step="0.1"
+                value={settings.stopLossPercentage}
+                onChange={(e) => handleSettingChange('stopLossPercentage', parseFloat(e.target.value))}
+                disabled={isLocked}
+                className="bg-slate-700 text-white rounded p-1 w-24"
+              />
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={settings.trailingStopEnabled}
+                  onChange={(e) => handleSettingChange('trailingStopEnabled', e.target.checked)}
+                  disabled={isLocked}
+                  className="rounded border-slate-700 bg-slate-800 text-cyan-500 focus:ring-cyan-500"
+                />
+                <span className="text-white text-sm">Enable Trailing Stop</span>
+              </label>
+              {settings.trailingStopEnabled && (
+                <div className="mt-2">
+                  <label className="block text-sm text-slate-400">Trailing Distance %</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={settings.trailingStopDistance}
+                    onChange={(e) => handleSettingChange('trailingStopDistance', parseFloat(e.target.value))}
+                    disabled={isLocked}
+                    className="bg-slate-700 text-white rounded p-1 w-24"
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={settings.resetPositionsDaily}
+                  onChange={(e) => handleSettingChange('resetPositionsDaily', e.target.checked)}
+                  disabled={isLocked}
+                  className="rounded border-slate-700 bg-slate-800 text-cyan-500 focus:ring-cyan-500"
+                />
+                <span className="text-white text-sm">Close All Positions Daily</span>
+              </label>
+              <p className="text-xs text-slate-400 mt-1">Auto-closes all positions at day end</p>
             </div>
           </div>
         </div>

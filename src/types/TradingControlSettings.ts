@@ -17,10 +17,20 @@ export interface TradingControlSettings {
   enabledStrategies: string[];
   minimumVolume: number;
   
-  // Time Controls
-  tradingHoursStart: string;
-  tradingHoursEnd: string;
-  maxTradesPerHour: number;
+  // Trade Duration Controls
+  maxTradeDuration: number; // in minutes
+  autoExitEnabled: boolean;
+  
+  // Intraday Controls
+  resetPositionsDaily: boolean;
+  maxDailyTrades: number;
+  maxSimultaneousTrades: number;
+  
+  // Exit Conditions
+  takeProfitPercentage: number;
+  stopLossPercentage: number;
+  trailingStopEnabled: boolean;
+  trailingStopDistance: number;
 }
 
 export const defaultTradingSettings: TradingControlSettings = {
@@ -34,7 +44,13 @@ export const defaultTradingSettings: TradingControlSettings = {
   maxOpenTrades: 5,
   enabledStrategies: ['MomentumBurst', 'TrendRider', 'VolumeSurge'],
   minimumVolume: 1000000,
-  tradingHoursStart: '09:15',
-  tradingHoursEnd: '15:30',
-  maxTradesPerHour: 3
+  maxTradeDuration: 60, // 60 minutes max trade duration
+  autoExitEnabled: true,
+  resetPositionsDaily: true,
+  maxDailyTrades: 25,
+  maxSimultaneousTrades: 3,
+  takeProfitPercentage: 2.5,
+  stopLossPercentage: 1.5,
+  trailingStopEnabled: true,
+  trailingStopDistance: 0.5
 };
