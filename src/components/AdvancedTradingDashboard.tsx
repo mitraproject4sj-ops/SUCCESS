@@ -4,10 +4,54 @@ import { TrendingUp, TrendingDown, Activity, DollarSign, BarChart3, Zap, Target,
 
 // Enhanced Trading Dashboard Component
 export default function TradingDashboard() {
-  const [selectedTimeframe, setSelectedTimeframe] = useState('24h');
+  const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
   const [isLiveTrading, setIsLiveTrading] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Effect to update PNL data based on selected timeframe
+  useEffect(() => {
+    // Function to generate PNL data for different timeframes
+    const generatePnlData = (days: number) => {
+      const data = [];
+      const now = new Date();
+      const baseCapital = 50000;
+      let runningCapital = baseCapital;
+
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        
+        const pnl = Math.random() > 0.4 
+          ? Math.round(Math.random() * 3000) 
+          : -Math.round(Math.random() * 2000);
+        
+        runningCapital += pnl;
+        
+        data.push({
+          date: date.toISOString().split('T')[0],
+          pnl: pnl,
+          trades: Math.round(Math.random() * 20) + 5,
+          winRate: Math.round(Math.random() * 30) + 50,
+          capital: runningCapital
+        });
+      }
+      return data;
+    };
+
+    // Map timeframe to number of days
+    const timeframeDays = {
+      '1d': 1,
+      '7d': 7,
+      '30d': 30,
+      '90d': 90,
+      '365d': 365
+    }[selectedTimeframe] || 7;
+
+    // Update PNL data based on selected timeframe
+    const newPnlData = generatePnlData(timeframeDays);
+    setDailyPnlData(newPnlData);
+  }, [selectedTimeframe]);
 
   // Mock data for comprehensive dashboard
   const [marketData] = useState([
@@ -20,7 +64,7 @@ export default function TradingDashboard() {
   ]);
 
   // Daily PNL Data
-  const [dailyPnlData] = useState([
+  const [dailyPnlData, setDailyPnlData] = useState([
     { date: '2025-01-15', pnl: 2580, trades: 15, winRate: 73, capital: 50000 },
     { date: '2025-01-16', pnl: -1200, trades: 12, winRate: 42, capital: 52580 },
     { date: '2025-01-17', pnl: 3400, trades: 18, winRate: 78, capital: 51380 },
@@ -169,10 +213,16 @@ export default function TradingDashboard() {
           <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white">Daily P&L Curve</h3>
-              <select className="bg-slate-700 text-white text-sm rounded-lg px-2 py-1">
-                <option>7 Days</option>
-                <option>30 Days</option>
-                <option>3 Months</option>
+              <select 
+                className="bg-slate-700 text-white text-sm rounded-lg px-2 py-1"
+                value={selectedTimeframe}
+                onChange={(e) => setSelectedTimeframe(e.target.value)}
+              >
+                <option value="1d">1 Day</option>
+                <option value="7d">7 Days</option>
+                <option value="30d">30 Days</option>
+                <option value="90d">3 Months</option>
+                <option value="365d">12 Months</option>
               </select>
             </div>
             <div className="h-48">
@@ -185,7 +235,21 @@ export default function TradingDashboard() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} tickFormatter={(date) => new Date(date).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })} />
+                  <XAxis 
+                    dataKey="date" 
+                    stroke="#9ca3af" 
+                    fontSize={12} 
+                    tickFormatter={(date) => {
+                      const d = new Date(date);
+                      if (selectedTimeframe === '1d') {
+                        return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                      } else if (selectedTimeframe === '365d') {
+                        return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                      } else {
+                        return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+                      }
+                    }} 
+                  />
                   <YAxis stroke="#9ca3af" fontSize={12} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#ffffff' }}
