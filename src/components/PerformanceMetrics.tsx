@@ -27,26 +27,53 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, icon, met
   </div>
 );
 
+import { PerformanceData } from '../utils/timeSeriesData';
+
 interface PerformanceMetricsProps {
-  data: {
-    winRate: number;
-    avgTradeTime: number;
-    profitFactor: number;
-    sharpeRatio: number;
-    bestStrategy: string;
-    bestExchange: string;
-  };
+  currentData: PerformanceData;
+  historicalData: PerformanceData[];
+  onTimeframeChange: (hours: number) => void;
 }
 
-export default function PerformanceMetrics({ data }: PerformanceMetricsProps) {
+export default function PerformanceMetrics({ currentData, historicalData, onTimeframeChange }: PerformanceMetricsProps) {
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
+
+  const calculateChange = (metric: keyof PerformanceData) => {
+    if (historicalData.length < 2) return 0;
+    const previous = historicalData[historicalData.length - 2][metric];
+    const current = historicalData[historicalData.length - 1][metric];
+    if (typeof previous === 'number' && typeof current === 'number') {
+      return Number(((current - previous) / previous * 100).toFixed(1));
+    }
+    return 0;
+  };
+
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-      <MetricCard
-        title="Win Rate"
-        value={`${data.winRate}%`}
-        change={2.5}
-        icon={<Target className="h-5 w-5 text-cyan-400" />}
-      />
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-white">Performance Metrics (24h)</h2>
+        <div className="flex items-center space-x-2">
+          <select 
+            className="bg-slate-700 text-white text-sm rounded-lg px-2 py-1"
+            onChange={(e) => onTimeframeChange(Number(e.target.value))}
+          >
+            <option value="24">Last 24 Hours</option>
+            <option value="48">Last 48 Hours</option>
+            <option value="72">Last 72 Hours</option>
+            <option value="168">Last 7 Days</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+        <MetricCard
+          title="Win Rate"
+          value={`${currentData.winRate}%`}
+          change={calculateChange('winRate')}
+          icon={<Target className="h-5 w-5 text-cyan-400" />}
+          onClick={() => setSelectedMetric('winRate')}
+          isSelected={selectedMetric === 'winRate'}
+        />
       <MetricCard
         title="Avg Trade Time"
         value={data.avgTradeTime}

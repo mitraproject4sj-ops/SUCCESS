@@ -27,14 +27,34 @@ export default function TradingDashboard() {
     { exchange: 'Delta Exchange', pnl: 3100, trades: 22, winRate: 64 }
   ]);
 
-  // Performance Metrics
-  const [performanceMetrics, setPerformanceMetrics] = useState({
+  // Performance Metrics with historical data
+  const [currentMetrics, setCurrentMetrics] = useState<PerformanceData>({
     winRate: 68.5,
     avgTradeTime: 23,
     profitFactor: 2.14,
     sharpeRatio: 1.82,
     bestStrategy: 'MomentumBurst',
-    bestExchange: 'Binance'
+    bestExchange: 'Binance',
+    timestamp: Date.now()
+  });
+
+  const [historicalMetrics, setHistoricalMetrics] = useState<PerformanceData[]>(() => {
+    const last24Hours: PerformanceData[] = [];
+    const now = Date.now();
+    
+    for (let i = 24; i >= 0; i--) {
+      last24Hours.push({
+        timestamp: now - (i * 3600000),
+        winRate: 65 + Math.random() * 10,
+        avgTradeTime: 20 + Math.random() * 10,
+        profitFactor: 1.8 + Math.random() * 0.8,
+        sharpeRatio: 1.5 + Math.random() * 0.8,
+        bestStrategy: Math.random() > 0.5 ? 'MomentumBurst' : 'TrendRider',
+        bestExchange: Math.random() > 0.5 ? 'Binance' : 'CoinDCX'
+      });
+    }
+    
+    return last24Hours;
   });
 
   // Trading Activity Heatmap Data
@@ -85,14 +105,24 @@ export default function TradingDashboard() {
         winRate: Math.min(100, Math.max(0, exchange.winRate + (Math.random() > 0.5 ? 1 : -1)))
       })));
 
-      // Update performance metrics
-      setPerformanceMetrics(prev => ({
-        ...prev,
-        winRate: Math.min(100, Math.max(0, prev.winRate + (Math.random() > 0.5 ? 0.1 : -0.1))),
-        avgTradeTime: Math.max(1, prev.avgTradeTime + (Math.random() > 0.5 ? 1 : -1)),
-        profitFactor: Math.max(0, prev.profitFactor + (Math.random() > 0.5 ? 0.01 : -0.01)),
-        sharpeRatio: Math.max(0, prev.sharpeRatio + (Math.random() > 0.5 ? 0.01 : -0.01))
-      }));
+      // Update current and historical performance metrics
+      const newMetrics: PerformanceData = {
+        timestamp: Date.now(),
+        winRate: Math.min(100, Math.max(0, currentMetrics.winRate + (Math.random() > 0.5 ? 0.1 : -0.1))),
+        avgTradeTime: Math.max(1, currentMetrics.avgTradeTime + (Math.random() > 0.5 ? 1 : -1)),
+        profitFactor: Math.max(0, currentMetrics.profitFactor + (Math.random() > 0.5 ? 0.01 : -0.01)),
+        sharpeRatio: Math.max(0, currentMetrics.sharpeRatio + (Math.random() > 0.5 ? 0.01 : -0.01)),
+        bestStrategy: currentMetrics.bestStrategy,
+        bestExchange: currentMetrics.bestExchange
+      };
+      
+      setCurrentMetrics(newMetrics);
+      setHistoricalMetrics(prev => {
+        const newData = [...prev, newMetrics];
+        // Keep only last 24 hours of data
+        const twentyFourHoursAgo = Date.now() - (24 * 3600000);
+        return newData.filter(d => d.timestamp >= twentyFourHoursAgo);
+      });
 
       // Update heatmap data occasionally
       if (Math.random() > 0.7) {
