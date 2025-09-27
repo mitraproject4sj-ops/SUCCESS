@@ -52,7 +52,17 @@ export default function PerformanceMetrics({ currentData, historicalData, onTime
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-white">Performance Metrics (24h)</h2>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => exportToCSV(historicalData, 'trading_performance')}
+            className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg text-sm flex items-center space-x-2 hover:bg-cyan-500/30 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            </svg>
+            <span>Export Data</span>
+          </button>
+          <div className="flex items-center space-x-2">
           <select 
             className="bg-slate-700 text-white text-sm rounded-lg px-2 py-1"
             onChange={(e) => onTimeframeChange(Number(e.target.value))}
@@ -61,6 +71,9 @@ export default function PerformanceMetrics({ currentData, historicalData, onTime
             <option value="48">Last 48 Hours</option>
             <option value="72">Last 72 Hours</option>
             <option value="168">Last 7 Days</option>
+            <option value="360">Last 15 Days</option>
+            <option value="720">Last 30 Days</option>
+            <option value="2160">Last Quarter</option>
           </select>
         </div>
       </div>

@@ -4,6 +4,8 @@ import { TrendingUp, TrendingDown, Activity, DollarSign, BarChart3, Zap, Target,
 import TradingControlPanel from './TradingControlPanel';
 import PerformanceMetrics from './PerformanceMetrics';
 import TradeHeatmap from './TradeHeatmap';
+import { exportToCSV } from '../utils/exportData';
+import { calculateAdvancedMetrics } from '../utils/advancedMetrics';
 
 // Enhanced Trading Dashboard Component
 export default function TradingDashboard() {
