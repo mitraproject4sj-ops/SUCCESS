@@ -1,12 +1,14 @@
 interface TradeExecutionParams {
   symbol: string;
-  side: 'BUY' | 'SELL';
+  direction: 'BUY' | 'SELL';
   quantity: number;
   price: number;
   exchange: string;
   stopLoss: number;
   takeProfit: number;
   strategy: string;
+  confidence: number;
+  maxRisk: number;
 }
 
 interface TradeResult {
@@ -14,6 +16,8 @@ interface TradeResult {
   orderId?: string;
   error?: string;
   timestamp: number;
+  pnl?: number;
+  riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 
 class TradeExecutionService {
