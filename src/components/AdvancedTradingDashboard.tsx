@@ -9,8 +9,52 @@ export default function TradingDashboard() {
   const [isLiveTrading, setIsLiveTrading] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Strategy Performance Data with dynamic updates
+  const [strategyPerformance, setStrategyPerformance] = useState([
+    { name: 'MomentumBurst', value: 6780, percentage: 42, color: '#10B981' },
+    { name: 'TrendRider', value: 4520, percentage: 28, color: '#3B82F6' },
+    { name: 'VolumeSurge', value: 2890, percentage: 18, color: '#F59E0B' },
+    { name: 'BreakoutHunter', value: 1850, percentage: 12, color: '#8B5CF6' }
+  ]);
+
+  // Exchange-wise PNL Data with dynamic updates
+  const [exchangePnlData, setExchangePnlData] = useState([
+    { exchange: 'Binance', pnl: 8450, trades: 45, winRate: 67 },
+    { exchange: 'CoinDCX', pnl: 5200, trades: 28, winRate: 71 },
+    { exchange: 'Delta Exchange', pnl: 3100, trades: 22, winRate: 64 }
+  ]);
   
   // Effect to update PNL data based on selected timeframe
+  // Effect for real-time performance updates
+  useEffect(() => {
+    const updateInterval = setInterval(() => {
+      // Update strategy performance
+      setStrategyPerformance(prev => {
+        const total = prev.reduce((sum, item) => sum + item.value, 0);
+        const updated = prev.map(strategy => ({
+          ...strategy,
+          value: strategy.value + (Math.random() > 0.5 ? 1 : -1) * Math.round(Math.random() * 100)
+        }));
+        const newTotal = updated.reduce((sum, item) => sum + item.value, 0);
+        return updated.map(strategy => ({
+          ...strategy,
+          percentage: Math.round((strategy.value / newTotal) * 100)
+        }));
+      });
+
+      // Update exchange PNL
+      setExchangePnlData(prev => prev.map(exchange => ({
+        ...exchange,
+        pnl: exchange.pnl + (Math.random() > 0.5 ? 1 : -1) * Math.round(Math.random() * 50),
+        trades: exchange.trades + (Math.random() > 0.8 ? 1 : 0),
+        winRate: Math.min(100, Math.max(0, exchange.winRate + (Math.random() > 0.5 ? 1 : -1)))
+      })));
+    }, 5000); // Update every 5 seconds
+
+    return () => clearInterval(updateInterval);
+  }, []);
+
   useEffect(() => {
     // Function to generate PNL data for different timeframes
     const generatePnlData = (days: number) => {
@@ -236,6 +280,107 @@ export default function TradingDashboard() {
         {/* Trading Control Panel */}
         <div className="mb-6">
           <TradingControlPanel />
+        </div>
+
+        {/* Strategy and Exchange Performance */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Strategy Contribution Donut Chart */}
+          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
+            <h3 className="text-lg font-semibold text-white mb-4">Strategy Contribution</h3>
+            <div className="h-[300px] relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={strategyPerformance}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {strategyPerformance.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value, name, props) => [
+                      `₹${value.toLocaleString()} (${props.payload.percentage}%)`,
+                      name
+                    ]}
+                    contentStyle={{
+                      backgroundColor: '#1f2937',
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#ffffff'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                <p className="text-2xl font-bold text-white">
+                  ₹{strategyPerformance.reduce((sum, item) => sum + item.value, 0).toLocaleString()}
+                </p>
+                <p className="text-sm text-slate-400">Total P&L</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              {strategyPerformance.map((strategy) => (
+                <div key={strategy.name} className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: strategy.color }} />
+                  <div>
+                    <p className="text-sm text-white">{strategy.name}</p>
+                    <p className="text-xs text-slate-400">
+                      ₹{strategy.value.toLocaleString()} ({strategy.percentage}%)
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Exchange-wise PNL */}
+          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
+            <h3 className="text-lg font-semibold text-white mb-4">Exchange Performance</h3>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={exchangePnlData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="exchange" stroke="#9ca3af" />
+                  <YAxis stroke="#9ca3af" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1f2937',
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#ffffff'
+                    }}
+                    formatter={(value, name) => [`₹${value.toLocaleString()}`, name]}
+                  />
+                  <Bar dataKey="pnl" fill="#10B981" radius={[4, 4, 0, 0]}>
+                    {exchangePnlData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.pnl >= 0 ? '#10B981' : '#EF4444'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="grid grid-cols-3 gap-4 mt-4">
+              {exchangePnlData.map((exchange) => (
+                <div key={exchange.exchange} className="bg-slate-700/30 rounded-lg p-3">
+                  <p className="text-sm text-white">{exchange.exchange}</p>
+                  <p className="text-lg font-semibold text-cyan-400">₹{exchange.pnl.toLocaleString()}</p>
+                  <div className="flex items-center justify-between text-xs text-slate-400 mt-1">
+                    <span>Trades: {exchange.trades}</span>
+                    <span>Win: {exchange.winRate}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Charts Row */}
