@@ -153,6 +153,61 @@ export default function TradingControlPanel() {
           </div>
         </div>
 
+        {/* Exchange Controls */}
+        <div className="border-t border-slate-700/50 pt-4">
+          <h3 className="flex items-center space-x-2 mb-3 text-white">
+            <BarChart2 className="h-4 w-4 text-green-400" />
+            <span>Exchange Allocation</span>
+          </h3>
+          <div className="grid grid-cols-1 gap-4">
+            {settings.exchanges.map(exchange => (
+              <div key={exchange.name} className="bg-slate-800/50 p-3 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={exchange.enabled}
+                      onChange={(e) => {
+                        const updatedExchanges = settings.exchanges.map(ex => 
+                          ex.name === exchange.name ? {...ex, enabled: e.target.checked} : ex
+                        );
+                        handleSettingChange('exchanges', updatedExchanges);
+                      }}
+                      disabled={isLocked}
+                      className="rounded border-slate-700 bg-slate-800 text-cyan-500 focus:ring-cyan-500"
+                    />
+                    <span className="text-white">{exchange.name}</span>
+                  </div>
+                  <div className="text-cyan-400">₹{exchange.allocatedCapital.toLocaleString()}</div>
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs text-slate-400">Max Open Trades</label>
+                    <input
+                      type="number"
+                      value={exchange.maxOpenTrades}
+                      onChange={(e) => {
+                        const updatedExchanges = settings.exchanges.map(ex => 
+                          ex.name === exchange.name ? {...ex, maxOpenTrades: parseInt(e.target.value)} : ex
+                        );
+                        handleSettingChange('exchanges', updatedExchanges);
+                      }}
+                      disabled={isLocked}
+                      className="bg-slate-700 text-white rounded p-1 w-20 text-sm"
+                      min="0"
+                      max="5"
+                    />
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs text-slate-400">Per Trade: </span>
+                    <span className="text-sm text-white">₹{settings.capitalPerTrade.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Strategy Controls */}
         <div className="border-t border-slate-700/50 pt-4">
           <h3 className="flex items-center space-x-2 mb-3 text-white">
