@@ -74,16 +74,37 @@ export default function TradingDashboard() {
     { date: '2025-01-21', pnl: 2100, trades: 16, winRate: 69, capital: 60030 }
   ]);
 
-  // Capital Utilization Data
-  const [capitalData] = useState([
-    { time: '09:00', totalCapital: 60000, activeCapital: 25000, utilization: 42 },
-    { time: '10:00', totalCapital: 60000, activeCapital: 35000, utilization: 58 },
-    { time: '11:00', totalCapital: 60000, activeCapital: 28000, utilization: 47 },
-    { time: '12:00', totalCapital: 60000, activeCapital: 42000, utilization: 70 },
-    { time: '13:00', totalCapital: 60000, activeCapital: 38000, utilization: 63 },
-    { time: '14:00', totalCapital: 60000, activeCapital: 31000, utilization: 52 },
-    { time: '15:00', totalCapital: 60000, activeCapital: 45000, utilization: 75 }
+  // Active Trades Data with Risk
+  const [activeTrades] = useState([
+    { symbol: 'BTCUSDT', entryPrice: 43250, stopLoss: 42800, quantity: 0.5, riskAmount: 225 },
+    { symbol: 'ETHUSDT', entryPrice: 2650, stopLoss: 2620, quantity: 2, riskAmount: 60 },
+    { symbol: 'BNBUSDT', entryPrice: 312.45, stopLoss: 308, quantity: 5, riskAmount: 122.25 }
   ]);
+
+  // Calculate Active Capital (Money at Risk)
+  const calculateActiveCapital = () => {
+    return activeTrades.reduce((total, trade) => total + trade.riskAmount, 0);
+  };
+
+  // Capital Utilization Data with new Active Capital calculation
+  const [capitalData, setCapitalData] = useState(() => {
+    const baseData = [
+      { time: '09:00', totalCapital: 60000 },
+      { time: '10:00', totalCapital: 60000 },
+      { time: '11:00', totalCapital: 60000 },
+      { time: '12:00', totalCapital: 60000 },
+      { time: '13:00', totalCapital: 60000 },
+      { time: '14:00', totalCapital: 60000 },
+      { time: '15:00', totalCapital: 60000 }
+    ];
+    
+    const activeCapital = calculateActiveCapital();
+    return baseData.map(data => ({
+      ...data,
+      activeCapital,
+      utilization: Math.round((activeCapital / data.totalCapital) * 100)
+    }));
+  });
 
   // Exchange-wise Performance
   const [exchangeData] = useState([
@@ -170,8 +191,12 @@ export default function TradingDashboard() {
           <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-400 text-sm">Active Capital</p>
-                <p className="text-2xl font-bold text-cyan-400">₹{activeCapital.toLocaleString()}</p>
+                <p className="text-slate-400 text-sm">Active Capital (Risk)</p>
+                <p className="text-2xl font-bold text-cyan-400">₹{calculateActiveCapital().toLocaleString()}</p>
+                <div className="mt-2 text-xs text-slate-400">
+                  <p>Active Trades: {activeTrades.length}</p>
+                  <p>Avg Risk/Trade: ₹{(calculateActiveCapital() / activeTrades.length || 0).toFixed(2)}</p>
+                </div>
                 <p className="text-xs text-slate-400">of ₹{currentCapital.toLocaleString()}</p>
               </div>
               <Activity className="h-8 w-8 text-cyan-400" />
@@ -224,6 +249,9 @@ export default function TradingDashboard() {
                 <option value="90d">3 Months</option>
                 <option value="365d">12 Months</option>
               </select>
+              <div className="ml-4 px-2 py-1 bg-blue-500/20 rounded-lg text-xs text-blue-400">
+                <span>Risk/Trade: ₹{(calculateActiveCapital() / activeTrades.length || 0).toFixed(2)}</span>
+              </div>
             </div>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
