@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, Activity, DollarSign, BarChart3, Zap, Target, RefreshCw, Play, Pause, Calendar, Filter, Search, Settings, Bell, User } from 'lucide-react';
+import TradingControlPanel from './TradingControlPanel';
 
 // Enhanced Trading Dashboard Component
 export default function TradingDashboard() {
@@ -230,6 +231,11 @@ export default function TradingDashboard() {
               <Zap className="h-8 w-8 text-green-400" />
             </div>
           </div>
+        </div>
+
+        {/* Trading Control Panel */}
+        <div className="mb-6">
+          <TradingControlPanel />
         </div>
 
         {/* Charts Row */}
