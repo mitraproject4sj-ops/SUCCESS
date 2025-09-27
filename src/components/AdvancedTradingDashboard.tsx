@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, Activity, DollarSign, BarChart3, Zap, Target, RefreshCw, Play, Pause, Calendar, Filter, Search, Settings, Bell, User } from 'lucide-react';
 import TradingControlPanel from './TradingControlPanel';
+import PerformanceMetrics from './PerformanceMetrics';
+import TradeHeatmap from './TradeHeatmap';
 
 // Enhanced Trading Dashboard Component
 export default function TradingDashboard() {
@@ -24,6 +26,38 @@ export default function TradingDashboard() {
     { exchange: 'CoinDCX', pnl: 5200, trades: 28, winRate: 71 },
     { exchange: 'Delta Exchange', pnl: 3100, trades: 22, winRate: 64 }
   ]);
+
+  // Performance Metrics
+  const [performanceMetrics, setPerformanceMetrics] = useState({
+    winRate: 68.5,
+    avgTradeTime: 23,
+    profitFactor: 2.14,
+    sharpeRatio: 1.82,
+    bestStrategy: 'MomentumBurst',
+    bestExchange: 'Binance'
+  });
+
+  // Trading Activity Heatmap Data
+  const [heatmapData, setHeatmapData] = useState(() => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const data = [];
+    
+    for (const day of days) {
+      for (let hour = 0; hour < 24; hour++) {
+        if (Math.random() > 0.3) { // 70% chance of having trades in a cell
+          data.push({
+            day,
+            hour,
+            value: Math.random() > 0.6 ? 
+              Math.round(Math.random() * 1000) : 
+              -Math.round(Math.random() * 500),
+            trades: Math.round(Math.random() * 10)
+          });
+        }
+      }
+    }
+    return data;
+  });
   
   // Effect to update PNL data based on selected timeframe
   // Effect for real-time performance updates
@@ -50,6 +84,35 @@ export default function TradingDashboard() {
         trades: exchange.trades + (Math.random() > 0.8 ? 1 : 0),
         winRate: Math.min(100, Math.max(0, exchange.winRate + (Math.random() > 0.5 ? 1 : -1)))
       })));
+
+      // Update performance metrics
+      setPerformanceMetrics(prev => ({
+        ...prev,
+        winRate: Math.min(100, Math.max(0, prev.winRate + (Math.random() > 0.5 ? 0.1 : -0.1))),
+        avgTradeTime: Math.max(1, prev.avgTradeTime + (Math.random() > 0.5 ? 1 : -1)),
+        profitFactor: Math.max(0, prev.profitFactor + (Math.random() > 0.5 ? 0.01 : -0.01)),
+        sharpeRatio: Math.max(0, prev.sharpeRatio + (Math.random() > 0.5 ? 0.01 : -0.01))
+      }));
+
+      // Update heatmap data occasionally
+      if (Math.random() > 0.7) {
+        setHeatmapData(prev => {
+          const hour = new Date().getHours();
+          const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date().getDay()];
+          const existingIndex = prev.findIndex(d => d.hour === hour && d.day === day);
+          
+          if (existingIndex >= 0) {
+            const updated = [...prev];
+            updated[existingIndex] = {
+              ...updated[existingIndex],
+              value: updated[existingIndex].value + (Math.random() > 0.5 ? 100 : -50),
+              trades: updated[existingIndex].trades + 1
+            };
+            return updated;
+          }
+          return prev;
+        });
+      }
     }, 5000); // Update every 5 seconds
 
     return () => clearInterval(updateInterval);
@@ -381,6 +444,16 @@ export default function TradingDashboard() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Performance Metrics */}
+        <div className="mb-6">
+          <PerformanceMetrics data={performanceMetrics} />
+        </div>
+
+        {/* Trading Activity Heatmap */}
+        <div className="mb-6">
+          <TradeHeatmap data={heatmapData} />
         </div>
 
         {/* Charts Row */}
