@@ -1,52 +1,68 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 
+interface Trade {
+  id: string;
+  symbol: string;
+  entry: number;
+  exit?: number;
+  quantity: number;
+  pnl?: number;
+  strategy: string;
+  timestamp: number;
+  status: 'OPEN' | 'CLOSED';
+  exchange: string;
+  stopLoss: number;
+  takeProfit: number;
+}
+
 interface MarketData {
   symbol: string;
   price: number;
   change24h: number;
   volume: number;
-  high24h: number;
-  low24h: number;
-  timestamp: string;
+  exchange: string;
+  lastUpdate: number;
 }
 
 interface TradingSignal {
   strategy: string;
   symbol: string;
   direction: 'BUY' | 'SELL';
-  entry: string;
-  stopLoss: string;
-  takeProfit: string;
-  confidence: string;
-  volume: string;
-  timestamp: string;
+  confidence: number;
+  price: number;
+  exchange: string;
+  timestamp: number;
 }
 
 interface TradingState {
+  activeTrades: Trade[];
+  completedTrades: Trade[];
   marketData: MarketData[];
   signals: TradingSignal[];
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
-  backendStatus: any;
+  lastUpdate: number;
 }
 
 type TradingAction = 
-  | { type: 'SET_MARKET_DATA'; payload: MarketData[] }
-  | { type: 'SET_SIGNALS'; payload: TradingSignal[] }
-  | { type: 'SET_CONNECTION'; payload: boolean }
+  | { type: 'UPDATE_TRADES'; payload: { activeTrades: Trade[]; completedTrades: Trade[] } }
+  | { type: 'UPDATE_MARKET_DATA'; payload: MarketData[] }
+  | { type: 'UPDATE_SIGNALS'; payload: TradingSignal[] }
+  | { type: 'SET_CONNECTION_STATUS'; payload: boolean }
   | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_BACKEND_STATUS'; payload: any };
+  | { type: 'SET_ERROR'; payload: string | null };
 
 const initialState: TradingState = {
+  activeTrades: [],
+  completedTrades: [],
   marketData: [],
   signals: [],
   isConnected: false,
   isLoading: true,
   error: null,
-  backendStatus: null
+  lastUpdate: 0
 };
 
 const tradingReducer = (state: TradingState, action: TradingAction): TradingState => {
