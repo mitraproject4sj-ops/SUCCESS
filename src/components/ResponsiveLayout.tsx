@@ -44,7 +44,7 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ children }) => {
           >
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <h1 className="text-white font-semibold">Trading Dashboard</h1>
+          <h1 className="text-white font-semibold">LAKSHYA Trading System</h1>
           <div className="w-8" /> {/* Spacer for alignment */}
         </div>
       </header>
