@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Header from './components/Header';
+import MonitoringDashboard from './components/MonitoringDashboard';
+import TroubleshootingPanel from './components/TroubleshootingPanel';
 import { TradingProvider } from './context/TradingContext';
+import AutoTroubleshooter from './utils/AutoTroubleshooter';
 
 interface User { 
   id: string; 
