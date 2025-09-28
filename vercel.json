@@ -1,38 +1,52 @@
 {
   "version": 2,
+  "name": "lakshya-trading-dashboard",
   "framework": "create-react-app",
-  "buildCommand": "CI=false npm run build",
-  "installCommand": "npm install --legacy-peer-deps --force",
-  "devCommand": "npm run start",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build",
-        "zeroConfig": true
-      }
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": "build",
+  "env": {
+    "CI": "false",
+    "GENERATE_SOURCEMAP": "false",
+    "NODE_OPTIONS": "--max-old-space-size=4096"
+  },
+  "build": {
+    "env": {
+      "CI": "false"
     }
-  ],
+  },
   "routes": [
     {
-      "src": "/static/(.*)",
-      "headers": { "cache-control": "public, max-age=31536000, immutable" },
-      "dest": "/static/$1"
+      "src": "/api/(.*)",
+      "dest": "https://trading-dashboard-backend-qwe4.onrender.com/api/$1",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      }
     },
     {
-      "src": "/assets/(.*)",
-      "headers": { "cache-control": "public, max-age=31536000, immutable" },
-      "dest": "/assets/$1"
+      "src": "/static/(.*)",
+      "headers": { 
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
     },
     {
       "src": "/favicon.ico",
       "dest": "/favicon.ico"
     },
     {
+      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|map))",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
       "src": "/(.*)",
-      "headers": { "cache-control": "public, max-age=0, must-revalidate" },
-      "dest": "/index.html"
+      "dest": "/index.html",
+      "headers": {
+        "Cache-Control": "public, max-age=0, must-revalidate"
+      }
     }
   ]
 }

@@ -2,6 +2,7 @@
   "name": "lakshya",
   "version": "1.0.0",
   "private": true,
+  "homepage": ".",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -13,7 +14,11 @@
     "backup": "node scripts/backup.js",
     "health": "node scripts/healthCheck.js",
     "deploy": "npm run build && npm run health",
-    "ci": "npm run lint && npm run type-check && npm test -- --coverage"
+    "ci": "npm run lint && npm run type-check && npm test -- --coverage",
+    "netlify": "npm run build",
+    "prebuild": "echo Skipping type check for deployment",
+    "vercel-build": "npm run build",
+    "postbuild": "echo Build completed successfully"
   },
   "dependencies": {
     "@binance/connector": "^3.0.0",
