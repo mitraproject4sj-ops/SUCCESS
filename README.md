@@ -2,6 +2,13 @@
 
 A modern, responsive trading dashboard with real-time data visualization and strategy execution.
 
+## 🚀 Deployment Status
+
+[![Netlify Status](https://api.netlify.com/api/v1/badges/your-site-id/deploy-status)](https://app.netlify.com/sites/lakshya-trading/deploys)
+
+- Frontend: [https://lakshya-trading.netlify.app](https://lakshya-trading.netlify.app)
+- Backend: [https://lakshya-trading-backend.onrender.com](https://lakshya-trading-backend.onrender.com)
+
 ## ✨ Features
 
 ### Step 1: Install & Run
