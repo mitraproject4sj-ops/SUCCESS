@@ -1,0 +1,22 @@
+# Vercel ignore file
+node_modules
+npm-debug.log*
+.npm
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.DS_Store
+.vscode
+*.log
+.git
+README.md
+*.md
+.eslintcache
+coverage/
+.nyc_output
+*.tgz
+*.tar.gz
+.cache
+.parcel-cache
