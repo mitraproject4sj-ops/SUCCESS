@@ -1,10 +1,13 @@
 import WebSocket from 'ws';
 
+import { LAKSHYA_CONFIG } from '../config/lakshya.config';
+
 interface MarketTick {
   symbol: string;
   price: number;
   timestamp: number;
   volume: number;
+  exchange: string;
 }
 
 interface TradeSignal {
@@ -36,19 +39,38 @@ class MarketDataSync {
   }
 
   private initializeWebSocket() {
-    // Initialize separate websockets for each exchange
-    this.initializeExchangeWebSocket('binance');
-    this.initializeExchangeWebSocket('coindcx');
-    this.initializeExchangeWebSocket('delta');
+    // Initialize WebSocket connections for each exchange
+    this.initializeBinanceWS();
+    this.initializeCoinDCXWS();
+    this.initializeDeltaWS();
+    
+    // Setup reconnection checks
+    setInterval(() => this.checkConnections(), 30000);
   }
 
-  private initializeExchangeWebSocket(exchange: string) {
-    const ws = new WebSocket(this.getExchangeWSUrl(exchange));
+  private initializeBinanceWS() {
+    const ws = new WebSocket('wss://stream.binance.com:9443/ws');
     
+    ws.on('open', () => {
+      const symbols = Object.keys(LAKSHYA_CONFIG.STRATEGIES);
+      const subscribeMsg = {
+        method: 'SUBSCRIBE',
+        params: symbols.map(s => `${s.toLowerCase()}@trade`),
+        id: 1
+      };
+      ws.send(JSON.stringify(subscribeMsg));
+    });
+
     ws.on('message', (data: string) => {
-      const tick = JSON.parse(data) as MarketTick;
-      this.addToBuffer(tick);
-      this.checkSignals(tick);
+      const tick = JSON.parse(data);
+      if (tick.e === 'trade') {
+        this.addToBuffer({
+          symbol: tick.s,
+          price: parseFloat(tick.p),
+          volume: parseFloat(tick.q),
+          timestamp: tick.T
+        });
+      }
     });
 
     ws.on('error', (error) => {
