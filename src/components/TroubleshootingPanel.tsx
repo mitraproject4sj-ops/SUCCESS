@@ -20,6 +20,43 @@ const TroubleshootingPanel: React.FC = () => {
     setHealthChecks(checks);
   };
 
+  const [isFixing, setIsFixing] = useState(false);
+  const [fixProgress, setFixProgress] = useState<string>('');
+  const recoveryManager = RecoveryManager.getInstance();
+
+  const handleAutoFix = async () => {
+    setIsFixing(true);
+    setFixProgress('Starting auto-fix process...');
+
+    try {
+      for (const issue of issues) {
+        const componentId = issue.toLowerCase().includes('storage') ? 'fix-local-storage'
+          : issue.toLowerCase().includes('network') ? 'fix-network'
+          : issue.toLowerCase().includes('route') ? 'fix-routes'
+          : issue.toLowerCase().includes('websocket') ? 'fix-websocket'
+          : null;
+
+        if (componentId) {
+          setFixProgress(`Attempting to fix: ${issue}`);
+          const success = await recoveryManager.attemptRecovery(componentId);
+          
+          if (success) {
+            setFixProgress(`✅ Fixed: ${issue}`);
+          } else {
+            const manualSteps = recoveryManager.getManualRecoverySteps(componentId);
+            setIssues(prev => [...prev, `Manual steps needed for ${issue}:`, ...manualSteps]);
+          }
+        }
+      }
+    } catch (error) {
+      setIssues(prev => [...prev, 'Auto-fix process failed: ' + error.message]);
+    } finally {
+      setIsFixing(false);
+      setFixProgress('');
+      handleTroubleshoot(); // Re-run diagnostics
+    }
+  };
+
   const handleTroubleshoot = async () => {
     setIsRunning(true);
     setIssues([]);

@@ -1,5 +1,22 @@
-import { LAKSHYA_CONFIG } from '../config/lakshya.config';
-import { AIStrategyCoordinator } from './AIStrategyCoordinator';
+import axios from 'axios';
+import { logError } from './errorTracking';
+
+interface SystemFix {
+  id: string;
+  description: string;
+  autoFix: () => Promise<boolean>;
+  manualSteps?: string[];
+}
+
+interface DetailedDiagnostic {
+  component: string;
+  subComponents: {
+    name: string;
+    status: 'ok' | 'warning' | 'error';
+    details: string;
+    metrics?: Record<string, number | string>;
+  }[];
+}
 
 interface RecoveryState {
   isActive: boolean;
