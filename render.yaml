@@ -1,0 +1,31 @@
+# Render Deployment Configuration
+
+services:
+  - type: web
+    name: lakshya-trading-backend
+    env: node
+    region: singapore # Change this to your preferred region
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: MONGODB_URI
+        sync: false # This will be set in Render dashboard
+      - key: JWT_SECRET
+        sync: false # This will be set in Render dashboard
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false # This will be set in Render dashboard
+    healthCheckPath: /health
+    autoDeploy: true
+    disk:
+      name: tmp
+      mountPath: /tmp
+      sizeGB: 1
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      targetMemoryPercent: 80
+      targetCPUPercent: 70
