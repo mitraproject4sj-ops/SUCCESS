@@ -11,6 +11,8 @@
     "type-check": "tsc --noEmit",
     "analyze": "source-map-explorer 'build/static/js/*.js'",
     "backup": "node scripts/backup.js",
+    "health": "node scripts/healthCheck.js",
+    "deploy": "npm run build && npm run health",
     "ci": "npm run lint && npm run type-check && npm test -- --coverage"
   },
   "dependencies": {

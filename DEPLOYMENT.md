@@ -1,6 +1,16 @@
-# Deployment Guide
+# 🚀 LAKSHYA Trading System - Deployment Guide
 
-## Frontend Deployment (Netlify)
+## Deployment Status
+[![Netlify Status](https://api.netlify.com/api/v1/badges/your-site-id/deploy-status)](https://app.netlify.com/sites/lakshya-trading/deploys)
+[![Backend Status](https://img.shields.io/website?url=https://lakshya-trading-backend.onrender.com/health)](https://lakshya-trading-backend.onrender.com/health)
+
+## URLs
+- Frontend: https://lakshya-trading.netlify.app
+- Backend: https://lakshya-trading-backend.onrender.com
+- WebSocket: wss://lakshya-trading-backend.onrender.com
+- API Docs: https://lakshya-trading-backend.onrender.com/docs
+
+## Deployment Procedures
 
 1. Connect to GitHub Repository:
    - Go to [Netlify](https://app.netlify.com)
