@@ -2,7 +2,7 @@
   "name": "lakshya",
   "version": "1.0.0",
   "private": true,
-  "homepage": ".",
+  "homepage": "https://mitraproject4sj-ops.github.io/SUCCESS",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -14,6 +14,8 @@
     "backup": "node scripts/backup.js",
     "health": "node scripts/healthCheck.js",
     "deploy": "npm run build && npm run health",
+    "predeploy": "npm run build",
+    "deploy-gh": "gh-pages -d build",
     "ci": "npm run lint && npm run type-check && npm test -- --coverage",
     "netlify": "npm run build",
     "prebuild": "echo Skipping type check for deployment",
@@ -44,7 +46,8 @@
   },
   "devDependencies": {
     "@types/jest": "^27.5.2",
-    "cross-env": "^10.0.0"
+    "cross-env": "^10.0.0",
+    "gh-pages": "^6.3.0"
   },
   "browserslist": {
     "production": [
