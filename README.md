@@ -1,6 +1,8 @@
-# 🚀 Trading Dashboard - Fixed & Complete
+# 🎯 LAKSHYA Trading System - Frontend
 
-## 🎯 Quick Setup
+A modern, responsive trading dashboard with real-time data visualization and strategy execution.
+
+## ✨ Features
 
 ### Step 1: Install & Run
 ```bash
