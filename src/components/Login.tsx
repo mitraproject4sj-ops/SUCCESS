@@ -43,7 +43,7 @@ export default function Login({ onLogin }: LoginProps) {
                 <TrendingUp className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">TradingBot Pro</h1>
+                <h1 className="text-2xl font-bold text-white">LAKSHYA BOT</h1>
               </div>
             </motion.div>
             <h2 className="text-xl font-bold text-white mb-2">Welcome Back</h2>

@@ -150,3 +150,5 @@ class RecoveryManager {
     };
   }
 }
+
+export default RecoveryManager;

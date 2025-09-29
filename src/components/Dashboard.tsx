@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { useTradingContext } from '../context/TradingContext';
+import TopCoinsPanel from './TopCoinsPanel';
 
 export default function Dashboard() {
   const { state, fetchData } = useTradingContext();
@@ -318,6 +319,11 @@ export default function Dashboard() {
           </div>
         </motion.div>
       )}
+      
+      {/* Top 10 Cryptocurrencies Panel */}
+      <div className="mt-8">
+        <TopCoinsPanel />
+      </div>
     </div>
   );
 }

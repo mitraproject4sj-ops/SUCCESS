@@ -3,12 +3,14 @@ import { motion } from 'framer-motion';
 import { BarChart3, Settings, Bell, User, LogOut, TrendingUp, Activity, Wrench, LayoutDashboard } from 'lucide-react';
 import { useTradingContext } from '../context/TradingContext';
 import { Link, useLocation } from 'react-router-dom';
+import NotificationSettings from './NotificationSettings';
 
 interface User { id: string; name: string; email: string; avatar?: string; }
 interface HeaderProps { user: User | null; onLogout: () => void; }
 
 export default function Header({ user, onLogout }: HeaderProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
   const { state, testTelegram, runStrategies } = useTradingContext();
   const location = useLocation();
 
@@ -46,8 +48,8 @@ export default function Header({ user, onLogout }: HeaderProps) {
               <TrendingUp className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">LAKSHYA BOT</h1>
-              <p className="text-xs text-blue-400">Live Trading Dashboard</p>
+              <h1 className="text-xl font-bold text-white">LAKSHYA BOT 🇮🇳</h1>
+              <p className="text-xs text-blue-400">Indian Trading Dashboard</p>
             </div>
           </motion.div>
 
@@ -108,13 +110,23 @@ export default function Header({ user, onLogout }: HeaderProps) {
           {/* Right - Profile */}
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <Bell className="h-5 w-5 text-white cursor-pointer hover:text-blue-400" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs flex items-center justify-center text-white">
-                {state.signals.length}
-              </span>
+              <button
+                onClick={() => setIsNotificationPanelOpen(true)}
+                className="relative p-1 hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <Bell className="h-5 w-5 text-white cursor-pointer hover:text-blue-400" />
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs flex items-center justify-center text-white">
+                  3
+                </span>
+              </button>
             </div>
 
-            <Settings className="h-5 w-5 text-white cursor-pointer hover:text-blue-400" />
+            <button
+              onClick={() => setIsNotificationPanelOpen(true)}
+              className="p-1 hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <Settings className="h-5 w-5 text-white cursor-pointer hover:text-blue-400" />
+            </button>
 
             <div className="relative">
               <button
@@ -152,6 +164,12 @@ export default function Header({ user, onLogout }: HeaderProps) {
           </div>
         </div>
       </div>
+      
+      {/* Notification & Settings Panel */}
+      <NotificationSettings 
+        isOpen={isNotificationPanelOpen} 
+        onClose={() => setIsNotificationPanelOpen(false)} 
+      />
     </header>
   );
 }

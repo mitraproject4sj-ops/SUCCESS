@@ -9,7 +9,17 @@ import Login from './components/Login';
 import Header from './components/Header';
 import MonitoringDashboard from './components/MonitoringDashboard';
 import TroubleshootingPanel from './components/TroubleshootingPanel';
-import AccessControl from './components/AccessControl';
+import { TradingProvider } from './context/TradingContext';
+import AutoTroubleshooter from './utils/AutoTroubleshooter';, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import AdvancedTradingDashboard from './components/AdvancedTradingDashboard';
+import Dashboard from './components/Dashboard';
+import ComprehensiveDashboard from './components/ComprehensiveDashboard';
+import Login from './components/Login';
+import Header from './components/Header';
+import MonitoringDashboard from './components/MonitoringDashboard';
+import TroubleshootingPanel from './components/TroubleshootingPanel';
 import { TradingProvider } from './context/TradingContext';
 import AutoTroubleshooter from './utils/AutoTroubleshooter';
 
@@ -21,18 +31,11 @@ interface User {
 }
 
 export default function App() {
-  const [isUnlocked, setIsUnlocked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if already unlocked
-    const unlocked = localStorage.getItem('lakshya_unlocked');
-    if (unlocked === 'true') {
-      setIsUnlocked(true);
-    }
-    
     const storedAuth = localStorage.getItem('trading_auth');
     const storedUser = localStorage.getItem('trading_user');
     
@@ -48,11 +51,6 @@ export default function App() {
     setIsLoading(false);
   }, []);
 
-  const handleUnlock = () => {
-    setIsUnlocked(true);
-    localStorage.setItem('lakshya_unlocked', 'true');
-  };
-
   const handleLogin = (userData: User) => {
     setUser(userData);
     setIsAuthenticated(true);
@@ -63,23 +61,23 @@ export default function App() {
   const handleLogout = () => {
     setUser(null);
     setIsAuthenticated(false);
-    setIsUnlocked(false);
     localStorage.removeItem('trading_auth');
     localStorage.removeItem('trading_user');
-    localStorage.removeItem('lakshya_unlocked');
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading LAKSHYA...</div>
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }} 
+          animate={{ scale: 1, opacity: 1 }} 
+          className="text-center"
+        >
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg">Initializing Trading Dashboard...</p>
+        </motion.div>
       </div>
     );
-  }
-
-  // Show access control first
-  if (!isUnlocked) {
-    return <AccessControl onUnlock={handleUnlock} />;
   }
 
   return (
@@ -107,8 +105,7 @@ export default function App() {
                 <main className="pt-16">
                   <Routes>
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/dashboard" element={<ProfessionalTradingDashboard />} />
-                    <Route path="/comprehensive" element={<ComprehensiveDashboard />} />
+                    <Route path="/dashboard" element={<ComprehensiveDashboard />} />
                     <Route path="/advanced" element={<AdvancedTradingDashboard />} />
                     <Route path="/monitoring" element={<MonitoringDashboard />} />
                     <Route path="/troubleshooting" element={<TroubleshootingPanel />} />

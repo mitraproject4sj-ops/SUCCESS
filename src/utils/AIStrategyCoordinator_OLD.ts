@@ -9,38 +9,18 @@ interface TradingSignal {
   entry: number;
   stopLoss: number;
   takeProfit: number;
-  timestamp: string;
-  reasoning: string;
-  volume?: number;
-}
-
-interface MarketData {
-  symbol: string;
-  currentPrice: number;
-  volume: number;
-  candles: Array<{
-    open: string;
-    high: string;
-    low: string;
-    close: string;
-    volume: string;
-    timestamp: number;
-  }>;
-}
-
-class AIStrategyCoordinator {
-  private static instance: AIStrategyCoordinator;
-  private cache: MemoryCache;
-
-  private constructor() {
-    this.cache = new MemoryCache(50); // 50MB cache for calculations
-  }
-
-  static getInstance(): AIStrategyCoordinator {
-    if (!AIStrategyCoordinator.instance) {
-      AIStrategyCoordinator.instance = new AIStrategyCoordinator();
-    }
-    return AIStrategyCoordinator.instance;
+  timestamp    return {
+      strategy: "Breakout Hunter",
+      symbol: marketData.symbol,
+      direction,
+      confidence: this.validateConfidence(confidence, "Breakout Hunter"),
+      entry,
+      stopLoss,
+      takeProfit,
+      timestamp: new Date().toISOString(),
+      reasoning: `Price: ${price.toFixed(4)}, Support: ${support.toFixed(4)}, Resistance: ${resistance.toFixed(4)}`,
+      volume: marketData.volume
+    };
   }
 
   // Enhanced Weighted Consensus Confidence Calculation
@@ -48,7 +28,6 @@ class AIStrategyCoordinator {
     overallConfidence: number;
     consensusDirection: 'BUY' | 'SELL' | 'HOLD';
     individualConfidences: { [key: string]: { confidence: number; direction: string } };
-    reasoning: string;
   } {
     // Strategy weights (must sum to 1.0)
     const strategyWeights = {
@@ -81,10 +60,9 @@ class AIStrategyCoordinator {
     let holdWeight = 0;
 
     const individualConfidences: { [key: string]: { confidence: number; direction: string } } = {};
-    let reasoningParts: string[] = [];
 
     for (const [strategyName, signal] of Object.entries(strategies)) {
-      const weight = strategyWeights[strategyName as keyof typeof strategyWeights];
+      const weight = strategyWeights[strategyName];
       const confidence = signal.confidence;
       
       individualConfidences[strategyName] = {
@@ -93,8 +71,7 @@ class AIStrategyCoordinator {
       };
 
       // Add to weighted confidence
-      const weightedContribution = weight * confidence;
-      weightedConfidence += weightedContribution;
+      weightedConfidence += weight * confidence;
 
       // Calculate direction weights
       if (signal.direction === 'BUY') {
@@ -104,9 +81,6 @@ class AIStrategyCoordinator {
       } else {
         holdWeight += weight;
       }
-
-      // Build reasoning
-      reasoningParts.push(`${strategyName}: ${confidence.toFixed(1)}% ${signal.direction} (${(weightedContribution).toFixed(1)})`);
     }
 
     // Determine consensus direction
@@ -118,18 +92,125 @@ class AIStrategyCoordinator {
     }
 
     // Apply consensus bonus/penalty
-    const consensusStrength = Math.abs(buyWeight - sellWeight);
-    const consensusBonus = consensusStrength * 10; // Up to 10% bonus for strong consensus
+    const consensusBonus = Math.abs(buyWeight - sellWeight) * 10; // Up to 10% bonus for strong consensus
     const finalConfidence = Math.min(weightedConfidence + consensusBonus, 95);
-
-    const reasoning = `Weighted: ${reasoningParts.join(', ')} | Consensus: ${consensusDirection} (${consensusStrength.toFixed(2)})`;
 
     return {
       overallConfidence: this.validateConfidence(finalConfidence, "Weighted Consensus"),
       consensusDirection,
-      individualConfidences,
-      reasoning
+      individualConfidences
     };
+  }reasoning: string;
+  volume?: number;
+}
+
+interface CandleData {
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  volume: string;
+  timestamp: number;
+}
+
+interface MarketData {
+  symbol: string;
+  candles: CandleData[];
+  currentPrice: number;
+  volume: number;
+}
+
+interface StrategyPerformance {
+  strategy: string;
+  totalTrades: number;
+  successfulTrades: number;
+  totalPnL: number;
+  avgConfidence: number;
+  lastUpdate: number;
+  winRate: number;
+  refinements: number;
+}
+
+class AIStrategyCoordinator {
+  private static instance: AIStrategyCoordinator;
+  private cache: MemoryCache;
+  private strategyPerformance: Map<string, StrategyPerformance>;
+  private refinedStrategies: Map<string, any>;
+
+  private constructor() {
+    this.cache = new MemoryCache(50); // 50MB cache limit
+    this.strategyPerformance = new Map();
+    this.refinedStrategies = new Map();
+    this.initializeStrategyTracking();
+  }
+
+  static getInstance(): AIStrategyCoordinator {
+    if (!AIStrategyCoordinator.instance) {
+      AIStrategyCoordinator.instance = new AIStrategyCoordinator();
+    }
+    return AIStrategyCoordinator.instance;
+  }
+
+  private initializeStrategyTracking(): void {
+    const strategies = ['Trend Rider', 'Momentum Burst', 'Volume Surge', 'Mean Reversal', 'Breakout Hunter'];
+    strategies.forEach(strategy => {
+      this.strategyPerformance.set(strategy, {
+        strategy,
+        totalTrades: 0,
+        successfulTrades: 0,
+        totalPnL: 0,
+        avgConfidence: 0,
+        lastUpdate: Date.now(),
+        winRate: 0,
+        refinements: 0
+      });
+    });
+  }
+
+  // Technical Analysis Helper Functions
+  private EMA(values: number[], period: number): number[] {
+    const k = 2 / (period + 1);
+    let ema = [values[0]];
+    for (let i = 1; i < values.length; i++) {
+      ema.push(values[i] * k + ema[i - 1] * (1 - k));
+    }
+    return ema;
+  }
+
+  private RSI(values: number[], period: number = 14): number {
+    if (values.length < period + 1) return 50; // Default neutral RSI
+    
+    let gains = 0, losses = 0;
+    for (let i = 1; i <= period; i++) {
+      let diff = values[i] - values[i - 1];
+      if (diff >= 0) gains += diff;
+      else losses -= diff;
+    }
+    let rs = gains / (losses || 1);
+    return 100 - (100 / (1 + rs));
+  }
+
+  private SMA(values: number[], period: number): number {
+    if (values.length < period) return values[values.length - 1];
+    return values.slice(-period).reduce((a, b) => a + b, 0) / period;
+  }
+
+  private calculateStopLoss(entry: number, direction: 'BUY' | 'SELL', atr: number = 0): number {
+    const riskPercent = 0.02; // 2% stop loss
+    if (direction === 'BUY') {
+      return entry * (1 - riskPercent);
+    } else {
+      return entry * (1 + riskPercent);
+    }
+  }
+
+  private calculateTakeProfit(entry: number, direction: 'BUY' | 'SELL'): number {
+    const rewardPercent = 0.04; // 4% take profit (2:1 risk-reward)
+    if (direction === 'BUY') {
+      return entry * (1 + rewardPercent);
+    } else {
+      return entry * (1 - rewardPercent);
+    }
   }
 
   // Strategy 1: Trend Rider (EMA Crossover)
@@ -146,7 +227,7 @@ class AIStrategyCoordinator {
     if (ema20[ema20.length - 1] > ema50[ema50.length - 1]) direction = "BUY";
     else if (ema20[ema20.length - 1] < ema50[ema50.length - 1]) direction = "SELL";
 
-    // Individual strategy confidence (not weighted)
+    // Fixed: Proper confidence calculation with cap at 95% and minimum 10%
     const confidenceRaw = Math.abs((ema20[ema20.length - 1] - ema50[ema50.length - 1]) / ema50[ema50.length - 1]) * 100;
     const confidence = Math.max(Math.min(confidenceRaw, 95), 10);
 
@@ -181,7 +262,7 @@ class AIStrategyCoordinator {
     if (rsi > 70) direction = "SELL";
     else if (rsi < 30) direction = "BUY";
 
-    // Individual strategy confidence
+    // Fixed: Proper confidence calculation with cap at 95% and minimum 10%
     const confidenceRaw = Math.abs(rsi - 50) / 50 * 100;
     const confidence = Math.max(Math.min(confidenceRaw, 95), 10);
 
@@ -220,7 +301,7 @@ class AIStrategyCoordinator {
       direction = closes[closes.length - 1] > closes[closes.length - 2] ? "BUY" : "SELL";
     }
 
-    // Improved confidence calculation for volume surge
+    // Fixed: Better confidence calculation for volume surge
     const volumeRatio = lastVol / avgVol;
     let confidenceRaw = 0;
     
@@ -232,7 +313,7 @@ class AIStrategyCoordinator {
       confidenceRaw = Math.min(volumeRatio * 30, 40);
     }
     
-    const confidence = Math.max(confidenceRaw, 10);
+    const confidence = Math.max(confidenceRaw, 10); // Minimum 10% confidence
 
     const entry = marketData.currentPrice;
     const stopLoss = direction !== 'HOLD' ? this.calculateStopLoss(entry, direction) : entry;
@@ -266,7 +347,7 @@ class AIStrategyCoordinator {
     if (price > sma20 * 1.02) direction = "SELL";   // Overbought
     else if (price < sma20 * 0.98) direction = "BUY"; // Oversold
 
-    // Individual strategy confidence
+    // Fixed: Proper confidence calculation with cap at 95% and minimum 10%
     const confidenceRaw = Math.abs((price - sma20) / sma20) * 100;
     const confidence = Math.max(Math.min(confidenceRaw, 95), 10);
 
@@ -306,7 +387,8 @@ class AIStrategyCoordinator {
     if (price > resistance) direction = "BUY";
     else if (price < support) direction = "SELL";
 
-    // Improved confidence calculation using distance from channel center
+    // Fixed: Proper confidence calculation with cap at 95% and minimum 10%
+    // Using distance from center of channel as confidence
     const channelCenter = (resistance + support) / 2;
     const channelWidth = resistance - support;
     const confidenceRaw = Math.abs(price - channelCenter) / (channelWidth / 2) * 100;
@@ -320,38 +402,12 @@ class AIStrategyCoordinator {
       strategy: "Breakout Hunter",
       symbol: marketData.symbol,
       direction,
-      confidence: this.validateConfidence(confidence, "Breakout Hunter"),
+      confidence: Math.round(confidence * 100) / 100,
       entry,
       stopLoss,
       takeProfit,
       timestamp: new Date().toISOString(),
       reasoning: `Price: ${price.toFixed(4)}, Support: ${support.toFixed(4)}, Resistance: ${resistance.toFixed(4)}`,
-      volume: marketData.volume
-    };
-  }
-
-  // NEW: Get Weighted Consensus Signal - Your Enhanced Formula
-  async getWeightedConsensusSignal(marketData: MarketData): Promise<TradingSignal> {
-    const consensusResult = this.calculateWeightedConsensusConfidence(marketData);
-
-    const entry = marketData.currentPrice;
-    const stopLoss = consensusResult.consensusDirection !== 'HOLD' 
-      ? this.calculateStopLoss(entry, consensusResult.consensusDirection) 
-      : entry;
-    const takeProfit = consensusResult.consensusDirection !== 'HOLD' 
-      ? this.calculateTakeProfit(entry, consensusResult.consensusDirection) 
-      : entry;
-
-    return {
-      strategy: "Weighted Consensus",
-      symbol: marketData.symbol,
-      direction: consensusResult.consensusDirection,
-      confidence: consensusResult.overallConfidence,
-      entry,
-      stopLoss,
-      takeProfit,
-      timestamp: new Date().toISOString(),
-      reasoning: consensusResult.reasoning,
       volume: marketData.volume
     };
   }
@@ -398,77 +454,132 @@ class AIStrategyCoordinator {
     const cached = this.cache.get(cacheKey);
     if (cached) return cached;
 
-    const signals = [
-      this.trendRiderStrategy(marketData),
-      this.momentumBurstStrategy(marketData),
-      this.volumeSurgeStrategy(marketData),
-      this.meanReversalStrategy(marketData),
-      this.breakoutHunterStrategy(marketData)
-    ];
+    const signals: TradingSignal[] = [];
 
-    // Add the weighted consensus signal
-    const consensusSignal = await this.getWeightedConsensusSignal(marketData);
-    signals.push(consensusSignal);
+    try {
+      // Run all 5 strategies
+      signals.push(this.trendRiderStrategy(marketData));
+      signals.push(this.momentumBurstStrategy(marketData));
+      signals.push(this.volumeSurgeStrategy(marketData));
+      signals.push(this.meanReversalStrategy(marketData));
+      signals.push(this.breakoutHunterStrategy(marketData));
 
-    this.cache.set(cacheKey, signals, 30000); // Cache for 30 seconds
-    return signals;
-  }
+      // Filter based on configuration thresholds
+      const filteredSignals = signals.filter(signal => {
+        const strategyConfig = this.getStrategyConfig(signal.strategy);
+        return signal.confidence >= strategyConfig.minConfidence;
+      });
 
-  // Technical Analysis Helper Methods
-  private EMA(data: number[], period: number): number[] {
-    const ema = [];
-    const k = 2 / (period + 1);
-    ema[0] = data[0];
-
-    for (let i = 1; i < data.length; i++) {
-      ema[i] = data[i] * k + ema[i - 1] * (1 - k);
-    }
-
-    return ema;
-  }
-
-  private SMA(data: number[], period: number): number {
-    return data.slice(-period).reduce((sum, val) => sum + val, 0) / period;
-  }
-
-  private RSI(data: number[], period: number = 14): number {
-    if (data.length < period + 1) return 50; // Neutral if not enough data
-
-    let gains = 0;
-    let losses = 0;
-
-    for (let i = 1; i <= period; i++) {
-      const change = data[i] - data[i - 1];
-      if (change > 0) gains += change;
-      else losses -= change;
-    }
-
-    const avgGain = gains / period;
-    const avgLoss = losses / period;
-
-    if (avgLoss === 0) return 100;
-    const rs = avgGain / avgLoss;
-    return 100 - (100 / (1 + rs));
-  }
-
-  private calculateStopLoss(entry: number, direction: 'BUY' | 'SELL'): number {
-    const stopLossPercentage = 0.02; // 2% stop loss
-    if (direction === 'BUY') {
-      return entry * (1 - stopLossPercentage);
-    } else {
-      return entry * (1 + stopLossPercentage);
+      this.cache.set(cacheKey, filteredSignals);
+      return filteredSignals;
+    } catch (error) {
+      console.error('Error getting strategy signals:', error);
+      return [];
     }
   }
 
-  private calculateTakeProfit(entry: number, direction: 'BUY' | 'SELL'): number {
-    const takeProfitPercentage = 0.04; // 4% take profit (1:2 risk/reward)
-    if (direction === 'BUY') {
-      return entry * (1 + takeProfitPercentage);
-    } else {
-      return entry * (1 - takeProfitPercentage);
+  private getStrategyConfig(strategyName: string): { weight: number; minConfidence: number; timeframes: string[] } {
+    const configMap: { [key: string]: any } = {
+      'Trend Rider': LAKSHYA_CONFIG.STRATEGIES.TREND_RIDER,
+      'Momentum Burst': LAKSHYA_CONFIG.STRATEGIES.MOMENTUM_BURST,
+      'Volume Surge': LAKSHYA_CONFIG.STRATEGIES.VOLUME_SURGE,
+      'Mean Reversal': LAKSHYA_CONFIG.STRATEGIES.REVERSAL_CATCHER,
+      'Breakout Hunter': LAKSHYA_CONFIG.STRATEGIES.BREAKOUT_HUNTER
+    };
+    
+    return configMap[strategyName] || { weight: 0.2, minConfidence: 75, timeframes: ['5m', '15m'] };
+  }
+
+  // Strategy Manager - Refine and learn from trades
+  updateStrategyPerformance(signal: TradingSignal, pnl: number): void {
+    const performance = this.strategyPerformance.get(signal.strategy);
+    if (!performance) return;
+
+    performance.totalTrades++;
+    performance.totalPnL += pnl;
+    if (pnl > 0) performance.successfulTrades++;
+    performance.winRate = (performance.successfulTrades / performance.totalTrades) * 100;
+    performance.lastUpdate = Date.now();
+
+    // Auto-refine strategy based on performance
+    if (performance.totalTrades >= 10 && performance.winRate < 50) {
+      this.refineStrategy(signal.strategy);
     }
+
+    this.strategyPerformance.set(signal.strategy, performance);
+  }
+
+  private refineStrategy(strategyName: string): void {
+    const performance = this.strategyPerformance.get(strategyName);
+    if (!performance) return;
+
+    performance.refinements++;
+    
+    // Implement refinement logic based on poor performance
+    console.log(`🔧 Refining strategy: ${strategyName} - Win Rate: ${performance.winRate.toFixed(1)}%`);
+    
+    // This is where you could implement machine learning or adaptive parameters
+    // For now, we'll adjust confidence thresholds
+    const currentConfig = this.getStrategyConfig(strategyName);
+    const refinedConfig = {
+      ...currentConfig,
+      minConfidence: Math.min(currentConfig.minConfidence + 5, 95) // Increase threshold for poor performers
+    };
+    
+    this.refinedStrategies.set(strategyName, refinedConfig);
+  }
+
+  getStrategyPerformance(): Map<string, StrategyPerformance> {
+    return this.strategyPerformance;
+  }
+
+  // Consensus signal with weighted confidence
+  async getConsensusSignal(marketData: MarketData): Promise<TradingSignal | null> {
+    const signals = await this.getAllStrategySignals(marketData);
+    
+    if (signals.length === 0) return null;
+
+    // Filter out HOLD signals
+    const actionableSignals = signals.filter(s => s.direction !== 'HOLD');
+    
+    if (actionableSignals.length === 0) return null;
+
+    // Calculate weighted consensus
+    let buyWeight = 0, sellWeight = 0;
+    let totalConfidence = 0;
+
+    actionableSignals.forEach(signal => {
+      const config = this.getStrategyConfig(signal.strategy);
+      const weightedConfidence = signal.confidence * config.weight;
+      
+      if (signal.direction === 'BUY') {
+        buyWeight += weightedConfidence;
+      } else if (signal.direction === 'SELL') {
+        sellWeight += weightedConfidence;
+      }
+      
+      totalConfidence += weightedConfidence;
+    });
+
+    const consensusDirection = buyWeight > sellWeight ? 'BUY' : 'SELL';
+    const consensusConfidence = Math.max(buyWeight, sellWeight);
+
+    // Only return signal if consensus confidence is above threshold
+    if (consensusConfidence < 60) return null;
+
+    const bestSignal = actionableSignals.reduce((best, current) => 
+      current.confidence > best.confidence ? current : best
+    );
+
+    return {
+      ...bestSignal,
+      strategy: 'Consensus',
+      direction: consensusDirection,
+      confidence: Math.round(consensusConfidence * 100) / 100,
+      reasoning: `Consensus from ${actionableSignals.length} strategies: ${actionableSignals.map(s => `${s.strategy}(${s.confidence.toFixed(1)}%)`).join(', ')}`
+    };
   }
 }
 
 export default AIStrategyCoordinator;
-export type { TradingSignal, MarketData };
+export type { TradingSignal, MarketData, CandleData, StrategyPerformance };
