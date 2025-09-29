@@ -1,114 +1,220 @@
-import React, { useState } from 'react';import React, { useState } from 'react';import React, { useState } from 'react';
+import React, { useState } from 'react';import React, { useState } from 'react';
 
 
 
-interface AccessControlProps {
+interface AccessControlProps {interface AccessControlProps {
 
   onUnlock: () => void;
 
-}interface AccessControlProps {interface AccessControlP        {/* Footer */}
+}  onUnlock: () => void;
 
 
 
-const AccessControl: React.FC<AccessControlProps> = ({ onUnlock }) => {  onUnlock: () => void;        <div className="mt-8 text-center">
+const AccessControl: React.FC<AccessControlProps> = ({ onUnlock }) => {}interface AccessControlProps {interface AccessControlP        {/* Footer */}
 
   const [password, setPassword] = useState('');
 
-  const [error, setError] = useState('');}          <div className="flex justify-center items-center mb-4">
+  const [error, setError] = useState('');
 
   
 
-  const MASTER_PASSWORD = 'LAKSHYA2025';            <span className="text-2xl mr-2">🇮🇳</span>
+  const MASTER_PASSWORD = 'LAKSHYA2025';const AccessControl: React.FC<AccessControlProps> = ({ onUnlock }) => {  onUnlock: () => void;        <div className="mt-8 text-center">
 
   
 
-  const handleSubmit = (e: React.FormEvent) => {const AccessControl: React.FC<AccessControlProps> = ({ onUnlock }) => {            <p className="text-sm text-orange-400 font-semibold">
+  const handleSubmit = (e: React.FormEvent) => {  const [password, setPassword] = useState('');
 
     e.preventDefault();
 
-      const [password, setPassword] = useState('');               
+      const [error, setError] = useState('');}          <div className="flex justify-center items-center mb-4">
 
     if (password === MASTER_PASSWORD) {
 
-      onUnlock();  const [error, setError] = useState('');            </p>
+      onUnlock();  
 
     } else {
 
-      setError('Invalid access code. Please try again.');              <span className="text-2xl ml-2">🇮🇳</span>
+      setError('Invalid access code. Please try again.');  const MASTER_PASSWORD = 'LAKSHYA2025';            <span className="text-2xl mr-2">🇮🇳</span>
 
       setPassword('');
 
-    }  // You can change this password or implement more sophisticated authentication          </div>
+    }  
 
   };
 
-  const MASTER_PASSWORD = 'LAKSHYA2025';          
+  const handleSubmit = (e: React.FormEvent) => {const AccessControl: React.FC<AccessControlProps> = ({ onUnlock }) => {            <p className="text-sm text-orange-400 font-semibold">
 
   return (
 
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">            <p className="text-sm text-green-400 font-medium mb-2">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">    e.preventDefault();
 
       <div className="bg-gray-800/90 backdrop-blur-lg rounded-2xl p-8 border border-gray-600 shadow-2xl w-full max-w-md">
 
-          const handleSubmit = (e: React.FormEvent) => {            Concept and Designed by: <span className="font-bold text-white">SHAILENDRA JAISWAL</span>
+              const [password, setPassword] = useState('');               
 
         {/* Header */}
 
-        <div className="text-center mb-8">    e.preventDefault();          </p>
+        <div className="text-center mb-8">    if (password === MASTER_PASSWORD) {
 
           <div className="flex justify-center items-center mb-4">
 
-            <span className="text-3xl mr-2">🇮🇳</span>              
+            <span className="text-3xl mr-2">🇮🇳</span>      onUnlock();  const [error, setError] = useState('');            </p>
 
             <div>
 
-              <div className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">    if (password === MASTER_PASSWORD) {          <p className="text-xs text-gray-400">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">    } else {
 
                 <h1 className="text-4xl font-bold mb-2">LAKSHYA</h1>
 
-              </div>      onUnlock();            © 2025 LAKSHYA Indian Trading System. All rights reserved.
+              </div>      setError('Invalid access code. Please try again.');              <span className="text-2xl ml-2">🇮🇳</span>
 
               <p className="text-gray-300 text-lg">Indian Trading System</p>
 
-            </div>    } else {          </p>
+            </div>      setPassword('');
 
             <span className="text-3xl ml-2">🇮🇳</span>
 
-          </div>      setError('Invalid access code. Please try again.');          <div className="flex justify-center items-center mt-4 space-x-4 text-xs text-gray-500">
+          </div>    }  // You can change this password or implement more sophisticated authentication          </div>
 
           <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto mt-4 rounded-full"></div>
 
-        </div>      setPassword('');            <span>🛡️ Secure Access</span>
+        </div>  };
 
 
 
-        {/* Access Form */}    }            <span>•</span>
+        {/* Access Form */}  const MASTER_PASSWORD = 'LAKSHYA2025';          
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          <div>  };            <span>⚡ Real-time Data</span>
+          <div>  return (
 
             <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
 
-              🔐 Enter Access Code            <span>•</span>
+              🔐 Enter Access Code    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">            <p className="text-sm text-green-400 font-medium mb-2">
 
             </label>
 
-            <input  return (            <span>🤖 AI Powered</span>
+            <input      <div className="bg-gray-800/90 backdrop-blur-lg rounded-2xl p-8 border border-gray-600 shadow-2xl w-full max-w-md">
 
               id="password"
 
-              type="password"    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">            <span>•</span>
+              type="password"          const handleSubmit = (e: React.FormEvent) => {            Concept and Designed by: <span className="font-bold text-white">SHAILENDRA JAISWAL</span>
 
               value={password}
 
-              onChange={(e) => setPassword(e.target.value)}      <div className="bg-gray-800/90 backdrop-blur-lg rounded-2xl p-8 border border-gray-600 shadow-2xl w-full max-w-md">            <span>🇮🇳 Made in India</span>
+              onChange={(e) => setPassword(e.target.value)}        {/* Header */}
 
               className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 
-              placeholder="Enter your access code..."                  </div>
+              placeholder="Enter your access code..."        <div className="text-center mb-8">    e.preventDefault();          </p>
 
               required
+
+            />          <div className="flex justify-center items-center mb-4">
+
+          </div>
+
+            <span className="text-3xl mr-2">🇮🇳</span>              
+
+          {error && (
+
+            <div className="p-3 bg-red-900/50 border border-red-500 rounded-lg text-red-200 text-sm">            <div>
+
+              ⚠️ {error}
+
+            </div>              <div className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">    if (password === MASTER_PASSWORD) {          <p className="text-xs text-gray-400">
+
+          )}
+
+                <h1 className="text-4xl font-bold mb-2">LAKSHYA</h1>
+
+          <button
+
+            type="submit"              </div>      onUnlock();            © 2025 LAKSHYA Indian Trading System. All rights reserved.
+
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500"
+
+          >              <p className="text-gray-300 text-lg">Indian Trading System</p>
+
+            🚀 Access Trading Dashboard
+
+          </button>            </div>    } else {          </p>
+
+        </form>
+
+            <span className="text-3xl ml-2">🇮🇳</span>
+
+        {/* Footer */}
+
+        <div className="mt-8 text-center">          </div>      setError('Invalid access code. Please try again.');          <div className="flex justify-center items-center mt-4 space-x-4 text-xs text-gray-500">
+
+          <div className="flex justify-center items-center mb-4">
+
+            <span className="text-2xl mr-2">🇮🇳</span>          <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto mt-4 rounded-full"></div>
+
+            <p className="text-sm text-green-400 font-medium">
+
+              Concept and Designed by: <span className="font-bold text-white">SHAILENDRA JAISWAL</span>        </div>      setPassword('');            <span>🛡️ Secure Access</span>
+
+            </p>
+
+            <span className="text-2xl ml-2">🇮🇳</span>
+
+          </div>
+
+                  {/* Access Form */}    }            <span>•</span>
+
+          <p className="text-xs text-gray-400">
+
+            © 2025 LAKSHYA Indian Trading System. All rights reserved.        <form onSubmit={handleSubmit} className="space-y-6">
+
+          </p>
+
+          <div className="flex justify-center items-center mt-4 space-x-4 text-xs text-gray-500">          <div>  };            <span>⚡ Real-time Data</span>
+
+            <span>🛡️ Secure Access</span>
+
+            <span>•</span>            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+
+            <span>⚡ Real-time Data</span>
+
+            <span>•</span>              🔐 Enter Access Code            <span>•</span>
+
+            <span>🤖 AI Powered</span>
+
+            <span>•</span>            </label>
+
+            <span>🇮🇳 Made in India</span>
+
+          </div>            <input  return (            <span>🤖 AI Powered</span>
+
+        </div>
+
+              id="password"
+
+        {/* Hint for demo */}
+
+        <div className="mt-6 p-3 bg-blue-900/30 border border-blue-600 rounded-lg">              type="password"    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">            <span>•</span>
+
+          <p className="text-xs text-blue-200 text-center">
+
+            💡 Demo Access Code: <span className="font-mono font-bold">LAKSHYA2025</span>              value={password}
+
+          </p>
+
+        </div>              onChange={(e) => setPassword(e.target.value)}      <div className="bg-gray-800/90 backdrop-blur-lg rounded-2xl p-8 border border-gray-600 shadow-2xl w-full max-w-md">            <span>🇮🇳 Made in India</span>
+
+      </div>
+
+    </div>              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
+  );
+
+};              placeholder="Enter your access code..."                  </div>
+
+
+
+export default AccessControl;              required
 
             />        {/* Header */}        </div>
 

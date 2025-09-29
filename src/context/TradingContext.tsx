@@ -3,6 +3,8 @@ import axios from 'axios';
 import AIStrategyCoordinator, { TradingSignal as AITradingSignal, MarketData as AIMarketData } from '../utils/AIStrategyCoordinator';
 import StrategyManager from '../utils/StrategyManager';
 import ReportingIntegration from '../utils/ReportingIntegration';
+import RealPriceService from '../utils/RealPriceService';
+import GoogleSheetsIntegration from '../utils/GoogleSheetsIntegration';
 
 interface Trade {
   id: string;
@@ -116,6 +118,8 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [state, dispatch] = useReducer(tradingReducer, initialState);
   const aiCoordinator = AIStrategyCoordinator.getInstance();
   const strategyManager = StrategyManager.getInstance();
+  const realPriceService = RealPriceService.getInstance();
+  const sheetsIntegration = GoogleSheetsIntegration.getInstance();
 
   const API_BASE = process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL || 'https://trading-dashboard-backend-qwe4.onrender.com';
 
@@ -197,6 +201,27 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         
         console.log('💰 Converted to INR prices:', marketDataINR[0]?.price);
         dispatch({ type: 'SET_MARKET_DATA', payload: marketDataINR });
+        
+        // Log to Google Sheets
+        sheetsIntegration.updateRealPrices();
+      } else {
+        console.log('🔄 Market data request failed, checking real price service...');
+        
+        // Try real price service as fallback
+        const realPrices = realPriceService.getAllRealPrices();
+        if (realPrices.length > 0) {
+          console.log('✅ Using real prices from RealPriceService');
+          const marketDataFromReal = realPrices.map(price => ({
+            symbol: price.symbol,
+            price: price.price, // Already in INR
+            change24h: price.change24h,
+            volume: price.volume,
+            exchange: 'Binance',
+            lastUpdate: price.lastUpdate,
+            timestamp: new Date(price.lastUpdate).toISOString()
+          }));
+          dispatch({ type: 'SET_MARKET_DATA', payload: marketDataFromReal });
+        }
       }
       
       if (signalsRes.status === 'fulfilled' && signalsRes.value?.data) {

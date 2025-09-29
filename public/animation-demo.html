@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAKSHYA - Animation Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            max-width: 900px;
+            width: 90%;
+            animation: containerSlideIn 1s ease-out;
+        }
+        
+        @keyframes containerSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .flag {
+            font-size: 60px;
+            margin: 0 15px;
+            animation: flagBounce 2s ease-in-out infinite alternate;
+            display: inline-block;
+        }
+        
+        @keyframes flagBounce {
+            0% { transform: rotate(-5deg) scale(1); }
+            100% { transform: rotate(5deg) scale(1.1); }
+        }
+        
+        .title {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6, #22c55e);
+            background-size: 200% 200%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease-in-out infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .subtitle {
+            font-size: 20px;
+            color: #cccccc;
+            margin-bottom: 10px;
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .dashboard-content {
+            background: rgba(0,0,0,0.3);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            animation: fadeInUp 1s ease-out 0.7s both;
+        }
+        
+        .status {
+            font-size: 24px;
+            color: #22c55e;
+            margin-bottom: 30px;
+            font-weight: bold;
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% { 
+                text-shadow: 0 0 5px #22c55e;
+                transform: scale(1);
+            }
+            50% { 
+                text-shadow: 0 0 20px #22c55e, 0 0 30px #22c55e;
+                transform: scale(1.05);
+            }
+        }
+        
+        .crypto-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .crypto-card {
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            animation: cardSlideIn 0.8s ease-out both;
+        }
+        
+        .crypto-card:nth-child(1) { animation-delay: 0.8s; }
+        .crypto-card:nth-child(2) { animation-delay: 1s; }
+        .crypto-card:nth-child(3) { animation-delay: 1.2s; }
+        .crypto-card:nth-child(4) { animation-delay: 1.4s; }
+        
+        @keyframes cardSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-100px) rotate(-10deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) rotate(0deg);
+            }
+        }
+        
+        .crypto-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .crypto-card:hover::before {
+            left: 100%;
+        }
+        
+        .crypto-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        
+        .crypto-card.green {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+        }
+        
+        .crypto-card.green:hover {
+            background: rgba(34, 197, 94, 0.4);
+            border-color: #16a34a;
+            box-shadow: 0 20px 40px rgba(34, 197, 94, 0.3);
+        }
+        
+        .crypto-card.blue {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+        
+        .crypto-card.blue:hover {
+            background: rgba(59, 130, 246, 0.4);
+            border-color: #2563eb;
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+        }
+        
+        .crypto-card.purple {
+            background: rgba(147, 51, 234, 0.2);
+            border-color: #9333ea;
+        }
+        
+        .crypto-card.purple:hover {
+            background: rgba(147, 51, 234, 0.4);
+            border-color: #7c3aed;
+            box-shadow: 0 20px 40px rgba(147, 51, 234, 0.3);
+        }
+        
+        .crypto-card.orange {
+            background: rgba(249, 115, 22, 0.2);
+            border-color: #f97316;
+        }
+        
+        .crypto-card.orange:hover {
+            background: rgba(249, 115, 22, 0.4);
+            border-color: #ea580c;
+            box-shadow: 0 20px 40px rgba(249, 115, 22, 0.3);
+        }
+        
+        .price {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .crypto-card:hover .price {
+            font-size: 26px;
+            text-shadow: 0 0 10px currentColor;
+        }
+        
+        .crypto-name {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .crypto-card:hover .crypto-name {
+            opacity: 1;
+            font-weight: bold;
+        }
+        
+        .change {
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .crypto-card:hover .change {
+            font-size: 16px;
+            animation: changeFlash 0.5s ease;
+        }
+        
+        @keyframes changeFlash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        .change.positive {
+            color: #22c55e;
+        }
+        
+        .change.negative {
+            color: #ef4444;
+        }
+        
+        .buttons {
+            margin: 30px 0;
+            animation: fadeInUp 1s ease-out 1.5s both;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 10px 10px 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transition: all 0.3s;
+            transform: translate(-50%, -50%);
+        }
+        
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+        
+        .btn.secondary {
+            background: linear-gradient(45deg, #6b7280, #4b5563);
+        }
+        
+        .btn.secondary:hover {
+            box-shadow: 0 15px 30px rgba(107, 114, 128, 0.4);
+        }
+        
+        .btn.success {
+            background: linear-gradient(45deg, #22c55e, #16a34a);
+        }
+        
+        .btn.success:hover {
+            box-shadow: 0 15px 30px rgba(34, 197, 94, 0.4);
+        }
+        
+        .footer {
+            margin-top: 30px;
+            animation: fadeInUp 1s ease-out 1.7s both;
+        }
+        
+        .credit {
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .credit:hover {
+            transform: scale(1.05);
+        }
+        
+        .credit .name {
+            color: #22c55e;
+            font-weight: bold;
+            text-shadow: 0 0 10px #22c55e;
+            animation: nameGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes nameGlow {
+            0% { text-shadow: 0 0 5px #22c55e; }
+            100% { text-shadow: 0 0 15px #22c55e, 0 0 25px #22c55e; }
+        }
+        
+        .features {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            font-size: 12px;
+            color: #9ca3af;
+            flex-wrap: wrap;
+        }
+        
+        .features span {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .features span:hover {
+            color: #22c55e;
+            transform: scale(1.2);
+            text-shadow: 0 0 5px #22c55e;
+        }
+        
+        /* Mobile Responsive Animations */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 36px;
+            }
+            
+            .flag {
+                font-size: 40px;
+            }
+            
+            .crypto-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .crypto-card {
+                padding: 20px;
+            }
+            
+            .crypto-card:hover {
+                transform: translateY(-5px) scale(1.02);
+            }
+            
+            .btn {
+                display: block;
+                margin: 10px auto;
+                width: 90%;
+            }
+        }
+        
+        /* Special Loading Animation */
+        .loading-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(34, 197, 94, 0.3);
+            border-top: 3px solid #22c55e;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 1000;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-indicator" id="loadingIndicator"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <span class="flag">🇮🇳</span>
+                <span class="title">LAKSHYA</span>
+                <span class="flag">🇮🇳</span>
+            </div>
+            <p class="subtitle">Indian Trading Dashboard - Animation Demo</p>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <div class="status">✨ Animations & Hover Effects Demo!</div>
+            
+            <!-- Crypto Grid -->
+            <div class="crypto-grid">
+                <div class="crypto-card green" onclick="cardClick('Bitcoin')">
+                    <div class="price" style="color: #22c55e;">₹36,45,280</div>
+                    <div class="crypto-name">Bitcoin (BTC)</div>
+                    <div class="change positive">+2.34% ↗️</div>
+                </div>
+                
+                <div class="crypto-card blue" onclick="cardClick('Ethereum')">
+                    <div class="price" style="color: #3b82f6;">₹2,24,567</div>
+                    <div class="crypto-name">Ethereum (ETH)</div>
+                    <div class="change negative">-1.23% ↘️</div>
+                </div>
+                
+                <div class="crypto-card purple" onclick="cardClick('Binance')">
+                    <div class="price" style="color: #9333ea;">₹26,789</div>
+                    <div class="crypto-name">Binance (BNB)</div>
+                    <div class="change positive">+3.67% ↗️</div>
+                </div>
+                
+                <div class="crypto-card orange" onclick="cardClick('Cardano')">
+                    <div class="price" style="color: #f97316;">₹41.50</div>
+                    <div class="crypto-name">Cardano (ADA)</div>
+                    <div class="change positive">+5.21% ↗️</div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="buttons">
+                <button class="btn" onclick="showNotifications()">🔔 Notifications (3)</button>
+                <button class="btn secondary" onclick="showSettings()">⚙️ Settings</button>
+                <button class="btn success" onclick="showFullDashboard()">📊 Full Dashboard</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="credit">
+                <span class="flag" style="font-size: 20px;">🇮🇳</span>
+                <span>Concept and Designed by: </span>
+                <span class="name">SHAILENDRA JAISWAL</span>
+                <span class="flag" style="font-size: 20px;">🇮🇳</span>
+            </div>
+            
+            <div class="features">
+                <span onclick="featureClick('Secure')">🛡️ Secure Access</span>
+                <span>•</span>
+                <span onclick="featureClick('Realtime')">⚡ Real-time Data</span>
+                <span>•</span>
+                <span onclick="featureClick('AI')">🤖 AI Powered</span>
+                <span>•</span>
+                <span onclick="featureClick('India')">🇮🇳 Made in India</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Remove loading indicator after page loads
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }, 2000);
+        });
+
+        function cardClick(crypto) {
+            // Trigger special animation
+            const card = event.currentTarget;
+            card.style.animation = 'cardPulse 0.6s ease';
+            
+            setTimeout(() => {
+                card.style.animation = '';
+            }, 600);
+            
+            alert(`💰 ${crypto} Card Clicked!\n\n✨ Animation Features:\n• Hover for glow effect\n• Card lift and scale\n• Price number animation\n• Shimmer effect\n• Color transitions`);
+        }
+
+        function showNotifications() {
+            alert('🔔 Notification Animations:\n\n• Pulse glow effect on status\n• Smooth button hover\n• Ripple click effect\n• Gradient text animation\n• Loading spinner');
+        }
+        
+        function showSettings() {
+            alert('⚙️ Settings Animations:\n\n• Backdrop blur effects\n• Smooth transitions\n• Interactive hover states\n• Button press animations\n• Gradient backgrounds');
+        }
+        
+        function showFullDashboard() {
+            alert('📊 Dashboard Animations:\n\n• Staggered card entrance\n• Flag bounce animation\n• Gradient text shifts\n• Container slide-in\n• Responsive breakpoints');
+        }
+
+        function featureClick(feature) {
+            const features = {
+                'Secure': '🛡️ Security Features:\n• Hover scaling\n• Glow text effects\n• Color transitions',
+                'Realtime': '⚡ Real-time Features:\n• Live data updates\n• Smooth refreshes\n• Status indicators',
+                'AI': '🤖 AI Features:\n• Smart animations\n• Predictive effects\n• Dynamic responses',
+                'India': '🇮🇳 Indian Features:\n• Flag animations\n• Cultural design\n• Local branding'
+            };
+            
+            alert(features[feature] || 'Feature info');
+        }
+
+        // Add CSS for cardPulse animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes cardPulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1) rotate(2deg); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        console.log('🎭 LAKSHYA Animation Demo loaded! Test all hover effects and clicks! 🇮🇳');
+    </script>
+</body>
+</html>
