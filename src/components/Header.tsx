@@ -46,7 +46,7 @@ export default function Header({ user, onLogout }: HeaderProps) {
               <TrendingUp className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">TradingBot Pro</h1>
+              <h1 className="text-xl font-bold text-white">LAKSHYA BOT</h1>
               <p className="text-xs text-blue-400">Live Trading Dashboard</p>
             </div>
           </motion.div>

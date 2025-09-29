@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, Loader, RefreshCw } from 'lucide-react';
 import AutoTroubleshooter from '../utils/AutoTroubleshooter';
+import RecoveryManager from '../utils/RecoveryManager';
 
 const TroubleshootingPanel: React.FC = () => {
   const [issues, setIssues] = useState<string[]>([]);

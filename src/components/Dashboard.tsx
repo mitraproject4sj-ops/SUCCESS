@@ -9,7 +9,7 @@ import { useTradingContext } from '../context/TradingContext';
 
 export default function Dashboard() {
   const { state, fetchData } = useTradingContext();
-  const { marketData, signals, isConnected, isLoading, error, backendStatus } = state;
+  const { marketData, signals, isConnected, isLoading, error } = state;
   const [priceChartData, setPriceChartData] = useState<any[]>([]);
   const [isLiveTrading] = useState(false);
 
