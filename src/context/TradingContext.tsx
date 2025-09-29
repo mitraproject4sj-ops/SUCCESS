@@ -119,6 +119,14 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const API_BASE = process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL || 'https://trading-dashboard-backend-qwe4.onrender.com';
 
+  // USD to INR conversion rate (current realistic rate)
+  const USD_TO_INR = 84.25;
+
+  // Helper function to convert USD prices to INR
+  const convertToINR = (usdPrice: number): number => {
+    return Math.round(usdPrice * USD_TO_INR * 100) / 100;
+  };
+
   // Helper function to generate demo candles for AI strategies
   const generateDemoCandles = (currentPrice: number) => {
     const candles = [];
@@ -151,7 +159,7 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     try {
       // First, check if backend is alive with a health check
-      const healthCheck = await axios.get(`${API_BASE}/api/status`, {
+      const healthCheck = await axios.get(`${API_BASE}/api/health`, {
         timeout: 10000, // 10 second timeout
         headers: {
           'Content-Type': 'application/json',
@@ -173,12 +181,34 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       if (marketRes.status === 'fulfilled' && marketRes.value?.data) {
         console.log('📊 Market data received:', marketRes.value.data.length, 'items');
-        dispatch({ type: 'SET_MARKET_DATA', payload: marketRes.value.data });
+        
+        // Convert USD prices to INR
+        const marketDataINR = marketRes.value.data.map((item: any) => ({
+          symbol: item.symbol,
+          price: convertToINR(item.price), // Convert USD to INR
+          change24h: item.change24h,
+          volume: item.volume,
+          high24h: item.high24h ? convertToINR(item.high24h) : convertToINR(item.price * 1.05),
+          low24h: item.low24h ? convertToINR(item.low24h) : convertToINR(item.price * 0.95),
+          exchange: item.exchange || 'Binance',
+          lastUpdate: Date.now(),
+          timestamp: item.timestamp || new Date().toISOString()
+        }));
+        
+        console.log('💰 Converted to INR prices:', marketDataINR[0]?.price);
+        dispatch({ type: 'SET_MARKET_DATA', payload: marketDataINR });
       }
       
       if (signalsRes.status === 'fulfilled' && signalsRes.value?.data) {
         console.log('🎯 Signals received:', signalsRes.value.data.length, 'signals');
-        dispatch({ type: 'SET_SIGNALS', payload: signalsRes.value.data });
+        
+        // Convert signal prices to INR
+        const signalsINR = signalsRes.value.data.map((signal: any) => ({
+          ...signal,
+          price: convertToINR(signal.price) // Convert signal prices to INR
+        }));
+        
+        dispatch({ type: 'SET_SIGNALS', payload: signalsINR });
       }
 
       dispatch({ type: 'SET_ERROR', payload: null });

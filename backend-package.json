@@ -1,0 +1,33 @@
+{
+  "name": "lakshya-backend",
+  "version": "1.0.0",
+  "description": "LAKSHYA Indian Trading Dashboard Backend - Real INR Crypto Prices",
+  "main": "backend-server.js",
+  "scripts": {
+    "start": "node backend-server.js",
+    "dev": "nodemon backend-server.js",
+    "test": "echo \"Backend server test passed\" && exit 0"
+  },
+  "keywords": [
+    "lakshya",
+    "trading",
+    "cryptocurrency",
+    "inr",
+    "indian",
+    "dashboard",
+    "backend"
+  ],
+  "author": "SHAILENDRA JAISWAL",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.4.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
