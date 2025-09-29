@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import AdvancedTradingDashboard from './components/AdvancedTradingDashboard';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Header from './components/Header';
@@ -68,32 +69,40 @@ export default function App() {
 
   return (
     <TradingProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
-        <AnimatePresence mode="wait">
-          {!isAuthenticated ? (
-            <motion.div
-              key="login"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <Login onLogin={handleLogin} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="dashboard"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <Header user={user} onLogout={handleLogout} />
-              <main className="pt-16">
-                <Dashboard />
-              </main>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      <Router>
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+          <AnimatePresence mode="wait">
+            {!isAuthenticated ? (
+              <motion.div
+                key="login"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <Login onLogin={handleLogin} />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="app"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <Header user={user} onLogout={handleLogout} />
+                <main className="pt-16">
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/dashboard" element={<AdvancedTradingDashboard />} />
+                    <Route path="/monitoring" element={<MonitoringDashboard />} />
+                    <Route path="/troubleshooting" element={<TroubleshootingPanel />} />
+                    <Route path="/basic" element={<Dashboard />} />
+                  </Routes>
+                </main>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </Router>
     </TradingProvider>
   );
 }

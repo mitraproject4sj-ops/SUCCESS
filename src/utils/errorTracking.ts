@@ -1,11 +1,13 @@
 import * as Sentry from "@sentry/react";
-import { Integrations } from "@sentry/tracing";
 
 export const initializeErrorTracking = () => {
   if (process.env.NODE_ENV === 'production') {
     Sentry.init({
       dsn: process.env.REACT_APP_SENTRY_DSN,
-      integrations: [new Integrations.BrowserTracing()],
+      integrations: [
+        Sentry.browserTracingIntegration(),
+        Sentry.replayIntegration(),
+      ],
       tracesSampleRate: 0.5,
       environment: process.env.NODE_ENV,
       beforeSend(event) {
@@ -39,10 +41,10 @@ export const logEvent = (name: string, data: Record<string, any> = {}) => {
 
 export const startTransaction = (name: string, data: Record<string, any> = {}) => {
   if (process.env.NODE_ENV === 'production') {
-    return Sentry.startTransaction({
+    return Sentry.startSpan({
       name,
       data,
-    });
+    }, () => {});
   }
   return null;
 };

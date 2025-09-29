@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Settings, Bell, User, LogOut, TrendingUp } from 'lucide-react';
+import { BarChart3, Settings, Bell, User, LogOut, TrendingUp, Activity, Wrench, LayoutDashboard } from 'lucide-react';
 import { useTradingContext } from '../context/TradingContext';
+import { Link, useLocation } from 'react-router-dom';
 
 interface User { id: string; name: string; email: string; avatar?: string; }
 interface HeaderProps { user: User | null; onLogout: () => void; }
@@ -9,6 +10,13 @@ interface HeaderProps { user: User | null; onLogout: () => void; }
 export default function Header({ user, onLogout }: HeaderProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { state, testTelegram, runStrategies } = useTradingContext();
+  const location = useLocation();
+
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Monitoring', href: '/monitoring', icon: Activity },
+    { name: 'Troubleshooting', href: '/troubleshooting', icon: Wrench },
+  ];
 
   const handleTestTelegram = async () => {
     try {
@@ -43,8 +51,31 @@ export default function Header({ user, onLogout }: HeaderProps) {
             </div>
           </motion.div>
 
-          {/* Center - Status */}
-          <div className="flex items-center space-x-4">
+          {/* Center - Navigation & Status */}
+          <div className="flex items-center space-x-6">
+            {/* Navigation Links */}
+            <nav className="flex items-center space-x-1">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                        : 'text-gray-300 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Status Indicator */}
             <div className={`flex items-center space-x-2 px-3 py-1 rounded-full ${
               state.isConnected ? 'bg-green-500/20' : 'bg-yellow-500/20'
             }`}>

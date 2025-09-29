@@ -1,726 +1,468 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, TrendingDown, Activity, DollarSign, BarChart3, Zap, Target, RefreshCw, Play, Pause, Calendar, Filter, Search, Settings, Bell, User } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, DollarSign, BarChart3, Zap, Target, RefreshCw, Play, Pause, Calendar, Filter, Search, Settings, Bell, User, Wifi, WifiOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import TradingControlPanel from './TradingControlPanel';
 import PerformanceMetrics from './PerformanceMetrics';
 import TradeHeatmap from './TradeHeatmap';
+import TotalPNLDashboard from './TotalPNLDashboard';
+import DynamicPNL from './DynamicPNL';
+import StrategyContribution from './StrategyContribution';
+import ExchangePNL from './ExchangePNL';
+import StrategyConfidenceControl from './StrategyConfidenceControl';
+import StrategySelectionControl from './StrategySelectionControl';
+import StrategyComparisonPanel from './StrategyComparisonPanel';
 import { exportToCSV } from '../utils/exportData';
 import { calculateAdvancedMetrics } from '../utils/advancedMetrics';
+import { useTradingContext } from '../context/TradingContext';
 
 // Enhanced Trading Dashboard Component
-export default function TradingDashboard() {
+export default function AdvancedTradingDashboard() {
+  const { state, fetchData } = useTradingContext();
+  const { marketData, signals, isConnected, isLoading, error } = state;
+
   const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
   const [isLiveTrading, setIsLiveTrading] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Strategy Performance Data with dynamic updates
-  const [strategyPerformance, setStrategyPerformance] = useState([
-    { name: 'MomentumBurst', value: 6780, percentage: 42, color: '#10B981' },
-    { name: 'TrendRider', value: 4520, percentage: 28, color: '#3B82F6' },
-    { name: 'VolumeSurge', value: 2890, percentage: 18, color: '#F59E0B' },
-    { name: 'BreakoutHunter', value: 1850, percentage: 12, color: '#8B5CF6' }
-  ]);
+  // Transform market data for heatmap
+  const heatmapData = marketData.flatMap(coin =>
+    Array.from({ length: 7 }, (_, dayIndex) =>
+      Array.from({ length: 24 }, (_, hour) => ({
+        hour,
+        day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayIndex],
+        value: Math.random() * coin.volume * 0.01, // Mock trading volume for heatmap
+        trades: Math.floor(Math.random() * 50) + 10
+      }))
+    ).flat()
+  ).slice(0, 168); // Limit to 7 days * 24 hours
 
-  // Exchange-wise PNL Data with dynamic updates
-  const [exchangePnlData, setExchangePnlData] = useState([
-    { exchange: 'Binance', pnl: 8450, trades: 45, winRate: 67 },
-    { exchange: 'CoinDCX', pnl: 5200, trades: 28, winRate: 71 },
-    { exchange: 'Delta Exchange', pnl: 3100, trades: 22, winRate: 64 }
-  ]);
+  // Calculate derived data from real signals
+  const strategyCounts = signals.reduce((acc, signal) => {
+    acc[signal.strategy] = (acc[signal.strategy] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
-  // Performance Metrics with historical data
-  const [currentMetrics, setCurrentMetrics] = useState<PerformanceData>({
-    winRate: 68.5,
-    avgTradeTime: 23,
-    profitFactor: 2.14,
-    sharpeRatio: 1.82,
-    bestStrategy: 'MomentumBurst',
-    bestExchange: 'Binance',
-    timestamp: Date.now()
-  });
+  const totalSignals = signals.length;
+  const highConfidenceSignals = signals.filter(s => s.confidence >= 70).length;
+  const buySignals = signals.filter(s => s.direction === 'BUY').length;
+  const sellSignals = signals.filter(s => s.direction === 'SELL').length;
 
-  const [historicalMetrics, setHistoricalMetrics] = useState<PerformanceData[]>(() => {
-    const last24Hours: PerformanceData[] = [];
+  // Generate strategy performance data from signals
+  const strategyPerformance = Object.entries(strategyCounts).map(([strategy, count]) => ({
+    name: strategy,
+    value: count * Math.random() * 1000 + 1000, // Mock profit calculation
+    percentage: Math.round((count / totalSignals) * 100),
+    color: ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EF4444'][Math.floor(Math.random() * 5)]
+  }));
+
+  // Generate price chart data
+  const [priceChartData, setPriceChartData] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Generate mock price chart data based on market data
+    const chartData = [];
     const now = Date.now();
-    
+    const basePrice = marketData.length > 0 ? marketData[0].price : 43250;
+
     for (let i = 24; i >= 0; i--) {
-      last24Hours.push({
-        timestamp: now - (i * 3600000),
-        winRate: 65 + Math.random() * 10,
-        avgTradeTime: 20 + Math.random() * 10,
-        profitFactor: 1.8 + Math.random() * 0.8,
-        sharpeRatio: 1.5 + Math.random() * 0.8,
-        bestStrategy: Math.random() > 0.5 ? 'MomentumBurst' : 'TrendRider',
-        bestExchange: Math.random() > 0.5 ? 'Binance' : 'CoinDCX'
+      const variance = Math.sin(i * 0.3) * 800 + Math.random() * 400;
+      chartData.push({
+        time: new Date(now - i * 3600000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        price: basePrice + variance,
+        volume: 50000 + Math.random() * 30000
       });
     }
-    
-    return last24Hours;
-  });
+    setPriceChartData(chartData);
+  }, [marketData]);
 
-  // Trading Activity Heatmap Data
-  const [heatmapData, setHeatmapData] = useState(() => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const data = [];
-    
-    for (const day of days) {
-      for (let hour = 0; hour < 24; hour++) {
-        if (Math.random() > 0.3) { // 70% chance of having trades in a cell
-          data.push({
-            day,
-            hour,
-            value: Math.random() > 0.6 ? 
-              Math.round(Math.random() * 1000) : 
-              -Math.round(Math.random() * 500),
-            trades: Math.round(Math.random() * 10)
-          });
-        }
-      }
-    }
-    return data;
-  });
-  
-  // Effect to update PNL data based on selected timeframe
-  // Effect for real-time performance updates
-  useEffect(() => {
-    const updateInterval = setInterval(() => {
-      // Update strategy performance
-      setStrategyPerformance(prev => {
-        const total = prev.reduce((sum, item) => sum + item.value, 0);
-        const updated = prev.map(strategy => ({
-          ...strategy,
-          value: strategy.value + (Math.random() > 0.5 ? 1 : -1) * Math.round(Math.random() * 100)
-        }));
-        const newTotal = updated.reduce((sum, item) => sum + item.value, 0);
-        return updated.map(strategy => ({
-          ...strategy,
-          percentage: Math.round((strategy.value / newTotal) * 100)
-        }));
-      });
-
-      // Update exchange PNL
-      setExchangePnlData(prev => prev.map(exchange => ({
-        ...exchange,
-        pnl: exchange.pnl + (Math.random() > 0.5 ? 1 : -1) * Math.round(Math.random() * 50),
-        trades: exchange.trades + (Math.random() > 0.8 ? 1 : 0),
-        winRate: Math.min(100, Math.max(0, exchange.winRate + (Math.random() > 0.5 ? 1 : -1)))
-      })));
-
-      // Update current and historical performance metrics
-      const newMetrics: PerformanceData = {
-        timestamp: Date.now(),
-        winRate: Math.min(100, Math.max(0, currentMetrics.winRate + (Math.random() > 0.5 ? 0.1 : -0.1))),
-        avgTradeTime: Math.max(1, currentMetrics.avgTradeTime + (Math.random() > 0.5 ? 1 : -1)),
-        profitFactor: Math.max(0, currentMetrics.profitFactor + (Math.random() > 0.5 ? 0.01 : -0.01)),
-        sharpeRatio: Math.max(0, currentMetrics.sharpeRatio + (Math.random() > 0.5 ? 0.01 : -0.01)),
-        bestStrategy: currentMetrics.bestStrategy,
-        bestExchange: currentMetrics.bestExchange
-      };
-      
-      setCurrentMetrics(newMetrics);
-      setHistoricalMetrics(prev => {
-        const newData = [...prev, newMetrics];
-        // Keep only last 24 hours of data
-        const twentyFourHoursAgo = Date.now() - (24 * 3600000);
-        return newData.filter(d => d.timestamp >= twentyFourHoursAgo);
-      });
-
-      // Update heatmap data occasionally
-      if (Math.random() > 0.7) {
-        setHeatmapData(prev => {
-          const hour = new Date().getHours();
-          const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date().getDay()];
-          const existingIndex = prev.findIndex(d => d.hour === hour && d.day === day);
-          
-          if (existingIndex >= 0) {
-            const updated = [...prev];
-            updated[existingIndex] = {
-              ...updated[existingIndex],
-              value: updated[existingIndex].value + (Math.random() > 0.5 ? 100 : -50),
-              trades: updated[existingIndex].trades + 1
-            };
-            return updated;
-          }
-          return prev;
-        });
-      }
-    }, 5000); // Update every 5 seconds
-
-    return () => clearInterval(updateInterval);
-  }, []);
-
-  useEffect(() => {
-    // Function to generate PNL data for different timeframes
-    const generatePnlData = (days: number) => {
-      const data = [];
-      const now = new Date();
-      const baseCapital = 50000;
-      let runningCapital = baseCapital;
-
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
-        
-        const pnl = Math.random() > 0.4 
-          ? Math.round(Math.random() * 3000) 
-          : -Math.round(Math.random() * 2000);
-        
-        runningCapital += pnl;
-        
-        data.push({
-          date: date.toISOString().split('T')[0],
-          pnl: pnl,
-          trades: Math.round(Math.random() * 20) + 5,
-          winRate: Math.round(Math.random() * 30) + 50,
-          capital: runningCapital
-        });
-      }
-      return data;
-    };
-
-    // Map timeframe to number of days
-    const timeframeDays = {
-      '1d': 1,
-      '7d': 7,
-      '30d': 30,
-      '90d': 90,
-      '365d': 365
-    }[selectedTimeframe] || 7;
-
-    // Update PNL data based on selected timeframe
-    const newPnlData = generatePnlData(timeframeDays);
-    setDailyPnlData(newPnlData);
-  }, [selectedTimeframe]);
-
-  // Mock data for comprehensive dashboard
-  const [marketData] = useState([
-    { symbol: 'BTCUSDT', price: 43250, change24h: -2.45, volume: 125000000, high24h: 44200, low24h: 42100, marketCap: '₹196827.9B', signal: 'BEARISH' },
-    { symbol: 'ETHUSDT', price: 2650, change24h: 3.28, volume: 85000000, high24h: 2720, low24h: 2580, marketCap: '₹45895.6B', signal: 'BULLISH' },
-    { symbol: 'BNBUSDT', price: 312.45, change24h: 1.87, volume: 15000000, high24h: 325, low24h: 305, marketCap: '₹10816.9B', signal: 'BULLISH' },
-    { symbol: 'XRPUSDT', price: 0.61, change24h: -1.62, volume: 5000000, high24h: 0.65, low24h: 0.59, marketCap: '₹15581.1B', signal: 'BEARISH' },
-    { symbol: 'SOLUSDT', price: 98.73, change24h: 4.25, volume: 25000000, high24h: 102.5, low24h: 94.8, marketCap: '₹10531.2B', signal: 'BULLISH' },
-    { symbol: 'ADAUSDT', price: 0.52, change24h: -0.85, volume: 8000000, high24h: 0.55, low24h: 0.51, marketCap: '₹3036.9B', signal: 'BEARISH' }
-  ]);
-
-  // Daily PNL Data
-  const [dailyPnlData, setDailyPnlData] = useState([
-    { date: '2025-01-15', pnl: 2580, trades: 15, winRate: 73, capital: 50000 },
-    { date: '2025-01-16', pnl: -1200, trades: 12, winRate: 42, capital: 52580 },
-    { date: '2025-01-17', pnl: 3400, trades: 18, winRate: 78, capital: 51380 },
-    { date: '2025-01-18', pnl: 1850, trades: 14, winRate: 64, capital: 54780 },
-    { date: '2025-01-19', pnl: -800, trades: 10, winRate: 40, capital: 56630 },
-    { date: '2025-01-20', pnl: 4200, trades: 22, winRate: 82, capital: 55830 },
-    { date: '2025-01-21', pnl: 2100, trades: 16, winRate: 69, capital: 60030 }
-  ]);
-
-  // Active Trades Data with Risk
-  const [activeTrades] = useState([
-    { symbol: 'BTCUSDT', entryPrice: 43250, stopLoss: 42800, quantity: 0.5, riskAmount: 225 },
-    { symbol: 'ETHUSDT', entryPrice: 2650, stopLoss: 2620, quantity: 2, riskAmount: 60 },
-    { symbol: 'BNBUSDT', entryPrice: 312.45, stopLoss: 308, quantity: 5, riskAmount: 122.25 }
-  ]);
-
-  // Calculate Active Capital (Money at Risk)
-  const calculateActiveCapital = () => {
-    return activeTrades.reduce((total, trade) => total + trade.riskAmount, 0);
-  };
-
-  // Capital Utilization Data with new Active Capital calculation
-  const [capitalData, setCapitalData] = useState(() => {
-    const baseData = [
-      { time: '09:00', totalCapital: 60000 },
-      { time: '10:00', totalCapital: 60000 },
-      { time: '11:00', totalCapital: 60000 },
-      { time: '12:00', totalCapital: 60000 },
-      { time: '13:00', totalCapital: 60000 },
-      { time: '14:00', totalCapital: 60000 },
-      { time: '15:00', totalCapital: 60000 }
-    ];
-    
-    const activeCapital = calculateActiveCapital();
-    return baseData.map(data => ({
-      ...data,
-      activeCapital,
-      utilization: Math.round((activeCapital / data.totalCapital) * 100)
-    }));
-  });
-
-  // Exchange-wise Performance
-  const [exchangeData] = useState([
-    { exchange: 'Binance', profit: 8450, trades: 45, winRate: 67, color: '#f59e0b' },
-    { exchange: 'Bybit', profit: 5200, trades: 28, winRate: 71, color: '#10b981' },
-    { exchange: 'OKX', profit: -1200, trades: 15, winRate: 40, color: '#ef4444' },
-    { exchange: 'Kucoin', profit: 3100, trades: 22, winRate: 64, color: '#8b5cf6' }
-  ]);
-
-  // Strategy Performance
-  const [strategyPerformance] = useState([
-    { strategy: 'MomentumBurst', signals: 145, profit: 6780, winRate: 72, avgProfit: 46.7 },
-    { strategy: 'TrendRider', signals: 98, profit: 4520, winRate: 68, avgProfit: 46.1 },
-    { strategy: 'VolumeSurge', signals: 76, profit: 2890, winRate: 63, avgProfit: 38.0 },
-    { strategy: 'MeanReversal', signals: 65, profit: 1850, winRate: 58, avgProfit: 28.5 },
-    { strategy: 'BreakoutHunter', signals: 52, profit: 3200, winRate: 75, avgProfit: 61.5 }
-  ]);
-
-  // Recent Trading Activity
-  const [recentTrades] = useState([
-    { symbol: 'BTCUSDT', strategy: 'MomentumBurst', direction: 'BUY', entry: 43250, exit: 43780, pnl: 530, time: '14:35' },
-    { symbol: 'ETHUSDT', strategy: 'TrendRider', direction: 'SELL', entry: 2650, exit: 2598, pnl: 520, time: '14:22' },
-    { symbol: 'BNBUSDT', strategy: 'VolumeSurge', direction: 'BUY', entry: 312, exit: 318, pnl: 600, time: '14:18' },
-    { symbol: 'XRPUSDT', strategy: 'BreakoutHunter', direction: 'SELL', entry: 0.615, exit: 0.608, pnl: -70, time: '14:15' },
-    { symbol: 'SOLUSDT', strategy: 'MomentumBurst', direction: 'BUY', entry: 98.5, exit: 101.2, pnl: 270, time: '14:08' }
-  ]);
-
-  const totalPnL = dailyPnlData.reduce((sum, day) => sum + day.pnl, 0);
-  const totalTrades = dailyPnlData.reduce((sum, day) => sum + day.trades, 0);
-  const avgWinRate = Math.round(dailyPnlData.reduce((sum, day) => sum + day.winRate, 0) / dailyPnlData.length);
-  const currentCapital = dailyPnlData[dailyPnlData.length - 1].capital;
-  const activeCapital = capitalData[capitalData.length - 1].activeCapital;
-
-  const filteredMarketData = marketData.filter(coin => 
+  // Filter market data based on search
+  const filteredMarketData = marketData.filter(coin =>
     coin.symbol.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading Trading Data...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white">
-      {/* Header */}
-      <header className="bg-slate-800/50 backdrop-blur-lg border-b border-slate-700/50 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg flex items-center justify-center">
-                <BarChart3 className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-cyan-400">Mitra Signals</h1>
-                <p className="text-xs text-slate-400">Advanced Trading Analytics</p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-6">
+      {/* Connection Status Banner */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-6 flex items-center space-x-3"
+        >
+          <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0" />
+          <div>
+            <p className="text-yellow-400 font-medium">Demo Mode Active</p>
+            <p className="text-yellow-300 text-sm">{error}</p>
           </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 px-3 py-1 bg-green-500/20 rounded-full">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-green-400 text-sm font-medium">Live Trading</span>
-            </div>
-            <span className="text-slate-300 text-sm">Last Update: {new Date().toLocaleTimeString()}</span>
-            <button className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-white font-medium transition-colors flex items-center space-x-2">
-              <RefreshCw className="h-4 w-4" />
-              <span>Refresh</span>
-            </button>
-          </div>
-        </div>
-      </header>
+        </motion.div>
+      )}
 
-      <div className="p-6 space-y-6">
-        {/* Key Metrics Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm">Total P&L (7d)</p>
-                <p className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  ₹{totalPnL.toLocaleString()}
-                </p>
-              </div>
-              <DollarSign className="h-8 w-8 text-green-400" />
+      {/* Header Controls */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 space-y-4 lg:space-y-0">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg flex items-center justify-center">
+              <BarChart3 className="h-6 w-6 text-white" />
             </div>
-          </div>
-
-          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm">Active Capital (Risk)</p>
-                <p className="text-2xl font-bold text-cyan-400">₹{calculateActiveCapital().toLocaleString()}</p>
-                <div className="mt-2 text-xs text-slate-400">
-                  <p>Active Trades: {activeTrades.length}</p>
-                  <p>Avg Risk/Trade: ₹{(calculateActiveCapital() / activeTrades.length || 0).toFixed(2)}</p>
-                </div>
-                <p className="text-xs text-slate-400">of ₹{currentCapital.toLocaleString()}</p>
-              </div>
-              <Activity className="h-8 w-8 text-cyan-400" />
-            </div>
-          </div>
-
-          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm">Total Trades</p>
-                <p className="text-2xl font-bold text-white">{totalTrades}</p>
-                <p className="text-xs text-green-400">{avgWinRate}% Win Rate</p>
-              </div>
-              <BarChart3 className="h-8 w-8 text-blue-400" />
-            </div>
-          </div>
-
-          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm">System Status</p>
-                <p className="text-2xl font-bold text-green-400">Online</p>
-                <button 
-                  onClick={() => setIsLiveTrading(!isLiveTrading)} 
-                  className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs mt-1 ${isLiveTrading ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}
-                >
-                  {isLiveTrading ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                  <span>{isLiveTrading ? 'Live' : 'Paper'}</span>
-                </button>
-              </div>
-              <Zap className="h-8 w-8 text-green-400" />
+            <div>
+              <h1 className="text-2xl font-bold text-cyan-400">LAKSHYA Trading Dashboard</h1>
+              <p className="text-sm text-slate-400">Real-time market analytics & signals</p>
             </div>
           </div>
         </div>
 
-        {/* Trading Control Panel */}
-        <div className="mb-6">
-          <TradingControlPanel />
-        </div>
+        <div className="flex flex-wrap items-center space-x-3">
+          {/* Connection Status */}
+          <div className={`flex items-center space-x-2 px-3 py-2 rounded-full ${
+            isConnected ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+          }`}>
+            {isConnected ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
+            <span className="text-sm font-medium">
+              {isConnected ? 'Live Data' : 'Demo Mode'}
+            </span>
+          </div>
 
-        {/* Strategy and Exchange Performance */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Strategy Contribution Donut Chart */}
-          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
-            <h3 className="text-lg font-semibold text-white mb-4">Strategy Contribution</h3>
-            <div className="h-[300px] relative">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={strategyPerformance}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {strategyPerformance.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value, name, props) => [
-                      `₹${value.toLocaleString()} (${props.payload.percentage}%)`,
-                      name
-                    ]}
-                    contentStyle={{
-                      backgroundColor: '#1f2937',
-                      border: '1px solid #374151',
-                      borderRadius: '8px',
-                      color: '#ffffff'
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                <p className="text-2xl font-bold text-white">
-                  ₹{strategyPerformance.reduce((sum, item) => sum + item.value, 0).toLocaleString()}
-                </p>
-                <p className="text-sm text-slate-400">Total P&L</p>
+          {/* Live Trading Toggle */}
+          <button
+            onClick={() => setIsLiveTrading(!isLiveTrading)}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+              isLiveTrading
+                ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+            }`}
+          >
+            {isLiveTrading ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            <span>{isLiveTrading ? 'Stop Trading' : 'Start Trading'}</span>
+          </button>
+
+          {/* Refresh Button */}
+          <button
+            onClick={fetchData}
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600/20 text-blue-400 rounded-lg hover:bg-blue-600/30 transition-colors"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span>Refresh</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Key Metrics Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-slate-800/50 backdrop-blur-lg rounded-xl p-4 border border-slate-700/50"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">Market Data</p>
+              <p className="text-2xl font-bold text-white">{marketData.length}</p>
+              <p className="text-sm text-blue-400">Active symbols</p>
+            </div>
+            <Activity className="h-8 w-8 text-blue-400" />
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-slate-800/50 backdrop-blur-lg rounded-xl p-4 border border-slate-700/50"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">Trading Signals</p>
+              <p className="text-2xl font-bold text-white">{totalSignals}</p>
+              <p className="text-sm text-purple-400">Active strategies</p>
+            </div>
+            <Zap className="h-8 w-8 text-purple-400" />
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-slate-800/50 backdrop-blur-lg rounded-xl p-4 border border-slate-700/50"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">High Confidence</p>
+              <p className="text-2xl font-bold text-white">{highConfidenceSignals}</p>
+              <p className="text-sm text-green-400">≥70% confidence</p>
+            </div>
+            <Target className="h-8 w-8 text-green-400" />
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-slate-800/50 backdrop-blur-lg rounded-xl p-4 border border-slate-700/50"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-400 text-sm">System Status</p>
+              <p className="text-2xl font-bold text-green-400">Online</p>
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${isLiveTrading ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}></div>
+                <span className="text-xs text-slate-400">{isLiveTrading ? 'Live' : 'Paper'}</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              {strategyPerformance.map((strategy) => (
-                <div key={strategy.name} className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: strategy.color }} />
-                  <div>
-                    <p className="text-sm text-white">{strategy.name}</p>
-                    <p className="text-xs text-slate-400">
-                      ₹{strategy.value.toLocaleString()} ({strategy.percentage}%)
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <CheckCircle className="h-8 w-8 text-green-400" />
           </div>
+        </motion.div>
+      </div>
 
-          {/* Exchange-wise PNL */}
-          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
-            <h3 className="text-lg font-semibold text-white mb-4">Exchange Performance</h3>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={exchangePnlData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="exchange" stroke="#9ca3af" />
-                  <YAxis stroke="#9ca3af" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1f2937',
-                      border: '1px solid #374151',
-                      borderRadius: '8px',
-                      color: '#ffffff'
-                    }}
-                    formatter={(value, name) => [`₹${value.toLocaleString()}`, name]}
-                  />
-                  <Bar dataKey="pnl" fill="#10B981" radius={[4, 4, 0, 0]}>
-                    {exchangePnlData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.pnl >= 0 ? '#10B981' : '#EF4444'}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="grid grid-cols-3 gap-4 mt-4">
-              {exchangePnlData.map((exchange) => (
-                <div key={exchange.exchange} className="bg-slate-700/30 rounded-lg p-3">
-                  <p className="text-sm text-white">{exchange.exchange}</p>
-                  <p className="text-lg font-semibold text-cyan-400">₹{exchange.pnl.toLocaleString()}</p>
-                  <div className="flex items-center justify-between text-xs text-slate-400 mt-1">
-                    <span>Trades: {exchange.trades}</span>
-                    <span>Win: {exchange.winRate}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Performance Metrics */}
-        <div className="mb-6">
-          <PerformanceMetrics data={performanceMetrics} />
-        </div>
-
-        {/* Trading Activity Heatmap */}
-        <div className="mb-6">
-          <TradeHeatmap data={heatmapData} />
-        </div>
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Daily PNL Chart */}
-          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Left Column - Charts */}
+        <div className="xl:col-span-2 space-y-6">
+          {/* Price Chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-slate-800/50 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50"
+          >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Daily P&L Curve</h3>
-              <select 
-                className="bg-slate-700 text-white text-sm rounded-lg px-2 py-1"
-                value={selectedTimeframe}
-                onChange={(e) => setSelectedTimeframe(e.target.value)}
-              >
-                <option value="1d">1 Day</option>
-                <option value="7d">7 Days</option>
-                <option value="30d">30 Days</option>
-                <option value="90d">3 Months</option>
-                <option value="365d">12 Months</option>
-              </select>
-              <div className="ml-4 px-2 py-1 bg-blue-500/20 rounded-lg text-xs text-blue-400">
-                <span>Risk/Trade: ₹{(calculateActiveCapital() / activeTrades.length || 0).toFixed(2)}</span>
+              <h3 className="text-lg font-semibold text-white">BTC/USDT Price Chart</h3>
+              <div className="flex items-center space-x-2">
+                <span className="text-2xl font-bold text-white">
+                  ${marketData.find(m => m.symbol === 'BTCUSDT')?.price.toFixed(2) || '43,250.00'}
+                </span>
+                <RefreshCw
+                  className="h-5 w-5 text-slate-400 cursor-pointer hover:text-white transition-colors"
+                  onClick={fetchData}
+                />
               </div>
             </div>
-            <div className="h-48">
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={dailyPnlData}>
+                <AreaChart data={priceChartData}>
                   <defs>
-                    <linearGradient id="pnlGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis 
-                    dataKey="date" 
-                    stroke="#9ca3af" 
-                    fontSize={12} 
-                    tickFormatter={(date) => {
-                      const d = new Date(date);
-                      if (selectedTimeframe === '1d') {
-                        return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                      } else if (selectedTimeframe === '365d') {
-                        return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-                      } else {
-                        return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
-                      }
-                    }} 
-                  />
-                  <YAxis stroke="#9ca3af" fontSize={12} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#ffffff' }}
-                    formatter={(value, name) => [`₹${value}`, 'P&L']}
-                  />
-                  <Area type="monotone" dataKey="pnl" stroke="#10b981" strokeWidth={2} fill="url(#pnlGradient)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Capital Utilization */}
-          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
-            <h3 className="text-lg font-semibold text-white mb-4">Capital Utilization</h3>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={capitalData}>
-                  <defs>
-                    <linearGradient id="capitalGradient" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
                       <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="time" stroke="#9ca3af" fontSize={12} />
-                  <YAxis stroke="#9ca3af" fontSize={12} tickFormatter={(value) => `₹${(value/1000).toFixed(0)}k`} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: '#ffffff' }}
-                    formatter={(value, name) => [`₹${value.toLocaleString()}`, name === 'activeCapital' ? 'Active Capital' : 'Total Capital']}
+                  <XAxis dataKey="time" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1F2937',
+                      border: '1px solid #374151',
+                      borderRadius: '8px'
+                    }}
                   />
-                  <Area type="monotone" dataKey="activeCapital" stroke="#3b82f6" strokeWidth={2} fill="url(#capitalGradient)" />
-                  <Line type="monotone" dataKey="totalCapital" stroke="#64748b" strokeWidth={1} strokeDasharray="5 5" />
+                  <Area
+                    type="monotone"
+                    dataKey="price"
+                    stroke="#3b82f6"
+                    fillOpacity={1}
+                    fill="url(#priceGradient)"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Exchange Performance */}
-          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
-            <h3 className="text-lg font-semibold text-white mb-4">Exchange Performance</h3>
-            <div className="space-y-3">
-              {exchangeData.map((exchange, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-full" style={{ backgroundColor: exchange.color }} />
-                    <div>
-                      <p className="text-white font-medium text-sm">{exchange.exchange}</p>
-                      <p className="text-slate-400 text-xs">{exchange.trades} trades</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`font-bold text-sm ${exchange.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      ₹{exchange.profit.toLocaleString()}
-                    </p>
-                    <p className="text-slate-400 text-xs">{exchange.winRate}% win</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Market Data and Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Live Market Data */}
-          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
+          {/* Market Data Table */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="bg-slate-800/50 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50"
+          >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Live Market Data</h3>
+              <h3 className="text-lg font-semibold text-white">Market Overview</h3>
               <div className="flex items-center space-x-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                  <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
-                    placeholder="Search coins..."
+                    placeholder="Search symbols..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="pl-10 pr-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto">
-              {filteredMarketData.map((coin, index) => (
-                <div key={index} className="p-4 bg-slate-700/50 rounded-lg hover:bg-slate-700/70 transition-colors">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        {coin.symbol.substring(0, 2)}
-                      </div>
-                      <div>
-                        <p className="text-white font-medium text-sm">{coin.symbol}</p>
-                        <p className="text-slate-400 text-xs">Vol: ₹{(coin.volume / 1000000).toFixed(1)}M</p>
-                      </div>
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      coin.signal === 'BULLISH' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                    }`}>
-                      {coin.signal}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-white font-bold">₹{coin.price.toFixed(2)}</span>
-                    <div className={`flex items-center space-x-1 ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {coin.change24h >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                      <span className="text-xs font-medium">{coin.change24h >= 0 ? '+' : ''}{coin.change24h.toFixed(2)}%</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-700">
+                    <th className="text-left py-2 text-slate-400 font-medium">Symbol</th>
+                    <th className="text-right py-2 text-slate-400 font-medium">Price</th>
+                    <th className="text-right py-2 text-slate-400 font-medium">24h Change</th>
+                    <th className="text-right py-2 text-slate-400 font-medium">Volume</th>
+                    <th className="text-center py-2 text-slate-400 font-medium">Signals</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMarketData.slice(0, 10).map((coin, index) => {
+                    const coinSignals = signals.filter(s => s.symbol === coin.symbol);
+                    return (
+                      <tr key={coin.symbol} className="border-b border-slate-700/50 hover:bg-slate-700/20">
+                        <td className="py-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xs font-bold text-white">
+                              {coin.symbol.slice(0, 2)}
+                            </div>
+                            <div>
+                              <p className="font-medium text-white">{coin.symbol}</p>
+                              <p className="text-xs text-slate-400">Crypto</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="text-right py-3">
+                          <p className="font-medium text-white">${coin.price.toFixed(2)}</p>
+                        </td>
+                        <td className="text-right py-3">
+                          <span className={`font-medium ${coin.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {coin.change24h >= 0 ? '+' : ''}{coin.change24h.toFixed(2)}%
+                          </span>
+                        </td>
+                        <td className="text-right py-3">
+                          <p className="font-medium text-white">{(coin.volume / 1000000).toFixed(1)}M</p>
+                        </td>
+                        <td className="text-center py-3">
+                          <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">
+                            {coinSignals.length}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-          </div>
-
-          {/* Strategy Performance */}
-          <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
-            <h3 className="text-lg font-semibold text-white mb-4">Strategy Performance</h3>
-            <div className="space-y-3 max-h-80 overflow-y-auto">
-              {strategyPerformance.map((strategy, index) => (
-                <div key={index} className="p-4 bg-slate-700/50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white font-medium">{strategy.strategy}</span>
-                    <span className={`font-bold ${strategy.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      ₹{strategy.profit.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div><span className="text-slate-400">Signals: </span><span className="text-white">{strategy.signals}</span></div>
-                    <div><span className="text-slate-400">Win Rate: </span><span className="text-white">{strategy.winRate}%</span></div>
-                    <div><span className="text-slate-400">Avg: </span><span className="text-white">₹{strategy.avgProfit}</span></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          </motion.div>
         </div>
 
-        {/* Recent Trading Activity */}
-        <div className="bg-slate-800/60 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50">
-          <h3 className="text-lg font-semibold text-white mb-4">Recent Trading Activity</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-700">
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Time</th>
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Symbol</th>
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Strategy</th>
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Direction</th>
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Entry</th>
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">Exit</th>
-                  <th className="text-left py-2 px-3 text-slate-400 font-medium">P&L</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentTrades.map((trade, index) => (
-                  <tr key={index} className="border-b border-slate-800 hover:bg-slate-700/30 transition-colors">
-                    <td className="py-3 px-3 text-slate-300">{trade.time}</td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-6 h-6 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                          {trade.symbol.substring(0, 2)}
-                        </div>
-                        <span className="text-white font-medium">{trade.symbol}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="px-2 py-1 bg-blue-600 rounded-full text-xs text-white">
-                        {trade.strategy}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        trade.direction === 'BUY' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                      }`}>
-                        {trade.direction}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-white">₹{trade.entry}</td>
-                    <td className="py-3 px-3 text-white">₹{trade.exit}</td>
-                    <td className="py-3 px-3">
-                      <span className={`font-bold ${trade.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {trade.pnl >= 0 ? '+' : ''}₹{trade.pnl}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {/* Right Column - Signals & Analytics */}
+        <div className="space-y-6">
+          {/* Trading Signals */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="bg-slate-800/50 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Trading Signals</h3>
+              <div className="flex items-center space-x-2">
+                <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">
+                  {buySignals} BUY
+                </span>
+                <span className="px-2 py-1 bg-red-500/20 text-red-400 rounded-full text-xs">
+                  {sellSignals} SELL
+                </span>
+              </div>
+            </div>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {signals.slice(0, 8).map((signal, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-3 h-3 rounded-full ${
+                      signal.direction === 'BUY' ? 'bg-green-500' : 'bg-red-500'
+                    }`}></div>
+                    <div>
+                      <p className="font-medium text-white text-sm">{signal.symbol}</p>
+                      <p className="text-xs text-slate-400">{signal.strategy}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-medium text-sm ${
+                      signal.direction === 'BUY' ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {signal.direction}
+                    </p>
+                    <p className="text-xs text-slate-400">{signal.confidence}%</p>
+                  </div>
+                </div>
+              ))}
+              {signals.length === 0 && (
+                <div className="text-center py-8">
+                  <Zap className="h-12 w-12 text-slate-500 mx-auto mb-2" />
+                  <p className="text-slate-400">No active signals</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Strategy Performance */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="bg-slate-800/50 backdrop-blur-lg rounded-xl p-6 border border-slate-700/50"
+          >
+            <h3 className="text-lg font-semibold text-white mb-4">Strategy Performance</h3>
+            <div className="space-y-3">
+              {strategyPerformance.map((strategy, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: strategy.color }}
+                    ></div>
+                    <span className="text-white text-sm font-medium">{strategy.name}</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white font-medium">₹{strategy.value.toLocaleString()}</p>
+                    <p className="text-xs text-slate-400">{strategy.percentage}%</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Bottom Section - All New Components */}
+      <div className="mt-6 space-y-6">
+        {/* Total PNL Dashboard */}
+        <TotalPNLDashboard />
+
+        {/* Dynamic PNL and Strategy Contribution */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <DynamicPNL />
+          <StrategyContribution />
+        </div>
+
+        {/* Exchange PNL */}
+        <ExchangePNL />
+
+        {/* Strategy Controls */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <StrategyConfidenceControl />
+          <StrategySelectionControl />
+        </div>
+
+        {/* Strategy Comparison Panel */}
+        <StrategyComparisonPanel />
+
+        {/* Original Components */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TradingControlPanel />
+          <TradeHeatmap data={heatmapData} />
         </div>
       </div>
     </div>

@@ -52,7 +52,11 @@ type TradingAction =
   | { type: 'UPDATE_SIGNALS'; payload: TradingSignal[] }
   | { type: 'SET_CONNECTION_STATUS'; payload: boolean }
   | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string | null };
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'SET_MARKET_DATA'; payload: MarketData[] }
+  | { type: 'SET_SIGNALS'; payload: TradingSignal[] }
+  | { type: 'SET_CONNECTION'; payload: boolean }
+  | { type: 'SET_BACKEND_STATUS'; payload: any };
 
 const initialState: TradingState = {
   activeTrades: [],
