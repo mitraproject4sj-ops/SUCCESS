@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+build
 
 # Editor directories and files
 .vscode/*
@@ -27,3 +28,9 @@ backend/
 
 # Local Netlify folder
 .netlify
+
+# Broken/backup files
+*.broken
+*.bak
+*_BROKEN.*
+*_OLD.*
