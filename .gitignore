@@ -27,3 +27,4 @@ backend/
 
 # Local Netlify folder
 .netlify
+/build

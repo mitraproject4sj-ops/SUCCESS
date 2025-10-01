@@ -4,7 +4,7 @@ import AIStrategyCoordinator, { TradingSignal as AITradingSignal, MarketData as 
 import StrategyManager from '../utils/StrategyManager';
 import ReportingIntegration from '../utils/ReportingIntegration';
 import RealPriceService from '../utils/RealPriceService';
-import GoogleSheetsIntegration from '../utils/GoogleSheetsIntegration';
+// import GoogleSheetsIntegration from '../utils/GoogleSheetsIntegration'; // Temporarily disabled due to googleapis dependency
 
 interface Trade {
   id: string;
@@ -119,7 +119,7 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const aiCoordinator = AIStrategyCoordinator.getInstance();
   const strategyManager = StrategyManager.getInstance();
   const realPriceService = RealPriceService.getInstance();
-  const sheetsIntegration = GoogleSheetsIntegration.getInstance();
+  // const sheetsIntegration = GoogleSheetsIntegration.getInstance(); // Temporarily disabled due to googleapis dependency
 
   const API_BASE = process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL || 'https://trading-dashboard-backend-qwe4.onrender.com';
 
@@ -203,7 +203,7 @@ export const TradingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         dispatch({ type: 'SET_MARKET_DATA', payload: marketDataINR });
         
         // Log to Google Sheets
-        sheetsIntegration.updateRealPrices();
+        // sheetsIntegration.updateRealPrices(); // Temporarily disabled due to googleapis dependency
       } else {
         console.log('🔄 Market data request failed, checking real price service...');
         
