@@ -27,3 +27,9 @@ backend/
 
 # Local Netlify folder
 .netlify
+
+# Broken/backup files
+*.broken
+*.bak
+*_BROKEN.*
+*_OLD.*
