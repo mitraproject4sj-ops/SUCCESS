@@ -1,7 +1,7 @@
 {
   "name": "lakshya-backend",
   "version": "1.0.0",
-  "description": "Backend server for LAKSHYA Trading Dashboard",
+  "description": "Minimal Express backend server for serving LAKSHYA Trading Dashboard frontend on Render",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
