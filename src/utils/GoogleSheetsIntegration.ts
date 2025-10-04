@@ -1,4 +1,5 @@
-import { google } from 'googleapis';
+// Note: googleapis is a backend-only library - frontend uses API calls instead
+// import { google } from 'googleapis';
 import RealPriceService from './RealPriceService';
 
 interface TradeData {
@@ -48,17 +49,10 @@ class GoogleSheetsIntegration {
 
   private async initializeSheets() {
     try {
-      // Method 1: Service Account (Recommended for production)
-      const auth = new google.auth.GoogleAuth({
-        keyFile: process.env.GOOGLE_SERVICE_ACCOUNT_PATH || './lakshya-service-account.json',
-        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-      });
-
-      this.sheets = google.sheets({ version: 'v4', auth });
-      
-      // Test connection
-      await this.setupWorksheets();
-      console.log('✅ Google Sheets connected successfully');
+      // Note: Google Sheets integration is disabled in frontend-only mode
+      // This would need to be handled by a backend service
+      console.warn('⚠️ Google Sheets integration requires backend API');
+      this.sheets = null;
       
     } catch (error) {
       console.error('Google Sheets initialization failed:', error);

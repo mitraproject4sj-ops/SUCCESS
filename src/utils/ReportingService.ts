@@ -1,7 +1,8 @@
-import { google } from 'googleapis';
-import nodemailer from 'nodemailer';
+// Note: These are backend-only libraries - frontend uses API calls instead
+// import { google } from 'googleapis';
+// import nodemailer from 'nodemailer';
 import { LAKSHYA_CONFIG } from '../config/lakshya.config';
-import TelegramBot from 'node-telegram-bot-api';
+// import TelegramBot from 'node-telegram-bot-api';
 
 interface DailyReport {
   date: string;
@@ -26,31 +27,18 @@ interface DailyReport {
 
 class ReportingService {
   private static instance: ReportingService;
-  private telegramBot: TelegramBot;
+  private telegramBot: any;
   private sheets: any;
   private emailTransporter: any;
   private chatIds: string[];
 
   private constructor() {
-    // Initialize Telegram Bot
-    this.telegramBot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN!, { polling: false });
-    this.chatIds = (process.env.TELEGRAM_CHAT_IDS || '').split(',');
-
-    // Initialize Google Sheets
-    const auth = new google.auth.GoogleAuth({
-      keyFile: 'lakshya-service-account.json',
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-    this.sheets = google.sheets({ version: 'v4', auth });
-
-    // Initialize Email
-    this.emailTransporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
+    // Note: Reporting features require backend API integration
+    console.warn('⚠️ ReportingService requires backend API');
+    this.telegramBot = null;
+    this.chatIds = [];
+    this.sheets = null;
+    this.emailTransporter = null;
   }
 
   static getInstance(): ReportingService {
